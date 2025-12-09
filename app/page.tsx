@@ -110,7 +110,10 @@ export default function Home() {
       { ref: productRef, id: "#product" },
       { ref: pricingRef, id: "#pricing" },
       { ref: contactRef, id: "#contact" },
-    ].filter((s) => s.ref.current) as { ref: React.RefObject<HTMLElement>; id: string }[];
+    ].filter((s) => s.ref.current) as {
+      ref: React.RefObject<HTMLElement | null>;
+      id: string;
+    }[];
 
     if (!root || !sections.length) return;
 
@@ -134,7 +137,7 @@ export default function Home() {
   useEffect(() => {
     if (typeof window === "undefined") return;
     const hash = window.location.hash || "#home";
-    const sectionMap: Record<string, React.RefObject<HTMLElement>> = {
+    const sectionMap: Record<string, React.RefObject<HTMLElement | null>> = {
       "#home": heroRef,
       "#product": productRef,
       "#pricing": pricingRef,
