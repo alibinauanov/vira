@@ -94,7 +94,8 @@ function AnnouncementComponent({
 
   const isExpandableContent = (child: ReactNode): child is React.ReactElement<{ children?: ReactNode }> => {
     if (!React.isValidElement(child)) return false;
-    return Boolean((child.type as Record<symbol, boolean>)[EXPANDABLE_CONTENT_SYMBOL]);
+    const typeWithMarker = child.type as unknown as Record<symbol, boolean> | undefined;
+    return Boolean(typeWithMarker?.[EXPANDABLE_CONTENT_SYMBOL]);
   };
 
   useEffect(() => {
