@@ -196,7 +196,11 @@ export default function Home() {
           <div className="relative z-10 flex flex-col h-full pb-28 pt-28 md:pt-32 md:pb-32">
             <div className="flex-1 flex flex-col items-center justify-center px-4 text-center gap-6">
               <h1 className="text-4xl md:text-7xl font-medium max-w-[850px] leading-tight">
-                Цифровой помощник для современных ресторанов и кофеен
+                Цифровой помощник для{" "}
+                <span className="bg-black text-white px-2 rounded-md">
+                  современных
+                </span>{" "}
+                ресторанов и кофеен
               </h1>
 
               <p className="text-sm md:text-base max-w-2xl text-slate-700">
