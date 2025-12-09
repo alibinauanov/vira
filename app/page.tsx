@@ -43,6 +43,7 @@ export default function Home() {
         "Весь функционал на первый месяц",
       ],
       cta: "Связаться",
+      highlight: false,
     },
     {
       name: "Стандарт",
@@ -56,6 +57,7 @@ export default function Home() {
         "Возможность для клиентов оформить подписки",
       ],
       cta: "Связаться",
+      highlight: true,
     },
     {
       name: "Премиум",
@@ -68,6 +70,7 @@ export default function Home() {
         "Приоритетная поддержка",
       ],
       cta: "Связаться",
+      highlight: false,
     },
   ];
 
