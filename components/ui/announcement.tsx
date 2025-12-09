@@ -92,6 +92,11 @@ function AnnouncementComponent({
   const expandedContentRef = useRef<ReactNode>(null);
   const mainContentRef = useRef<ReactNode[]>([]);
 
+  const isExpandableContent = (child: ReactNode): child is React.ReactElement<{ children?: ReactNode }> => {
+    if (!React.isValidElement(child)) return false;
+    return Boolean((child.type as Record<symbol, boolean>)[EXPANDABLE_CONTENT_SYMBOL]);
+  };
+
   useEffect(() => {
     setIsMounted(true);
   }, []);
@@ -103,7 +108,7 @@ function AnnouncementComponent({
     let found = false;
 
     childArray.forEach((child) => {
-      if (React.isValidElement(child) && (child.type as unknown as Record<symbol, boolean>)[EXPANDABLE_CONTENT_SYMBOL]) {
+      if (isExpandableContent(child)) {
         expanded = child.props.children;
         found = true;
       } else {
