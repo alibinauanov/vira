@@ -1,6 +1,6 @@
 "use client";
 
-import Link from "next/link";
+import Image from "next/image";
 import { usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
 
@@ -23,29 +23,14 @@ const navItems: NavItem[] = [
 
 function Logo() {
   return (
-    <svg
-      width="32"
-      height="32"
-      viewBox="0 0 64 64"
-      fill="none"
-      xmlns="http://www.w3.org/2000/svg"
-    >
-      <rect width="64" height="64" rx="14" fill="#0B0B0B" />
-      <path
-        d="M18 44.5 29 18h6l11 26.5"
-        stroke="#F5F5F5"
-        strokeWidth="4"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-      />
-      <path
-        d="m26 38 6-14 6 14"
-        stroke="#FFFFFF"
-        strokeWidth="4"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-      />
-    </svg>
+    <Image
+      src="/logo.png"
+      alt="Логотип Vira"
+      width={32}
+      height={32}
+      className="h-8 w-8 rounded-xl"
+      priority
+    />
   );
 }
 
@@ -77,17 +62,23 @@ export default function Navigation({ activeSection, onNavigate }: NavigationProp
 
   const toggleMenu = () => setIsOpen((prev) => !prev);
 
+  const handleLogoClick = () => {
+    onNavigate?.("#home");
+    setIsOpen(false);
+  };
+
   return (
     <header className="fixed top-6 left-1/2 z-50 w-full max-w-2xl -translate-x-1/2 px-4">
       <div className="relative border border-slate-200 bg-white/85 backdrop-blur shadow-sm rounded-2xl md:rounded-full">
         <div className="flex items-center justify-between gap-4 px-4 py-3 md:px-6">
-          <Link
-            href="/"
+          <button
+            type="button"
+            onClick={handleLogoClick}
             className="flex items-center gap-2 font-semibold text-lg text-slate-900 hover:text-slate-700 transition-colors"
           >
             <Logo />
             <span>Vira</span>
-          </Link>
+          </button>
 
           <div className="hidden md:flex items-center gap-2">
             {navItems.map((item) => {
