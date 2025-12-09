@@ -57,7 +57,7 @@ export default function Home() {
         "Возможность для клиентов оформить подписки",
       ],
       cta: "Связаться",
-      highlight: true,
+      highlight: false,
     },
     {
       name: "Премиум",
