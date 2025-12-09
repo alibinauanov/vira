@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { ArrowUpRightIcon } from "lucide-react";
 
 import Navigation from "@/components/Navigation";
@@ -157,12 +157,30 @@ export default function Home() {
     if (typeof window === "undefined") return;
     if (!activeSection) return;
     if (window.location.hash === activeSection) return;
-    window.history.replaceState(null, "", activeSection);
+    // Only update URL when navigation is triggered explicitly (e.g., via navbar anchor)
+    // to avoid changing the hash on scroll-driven section highlights.
   }, [activeSection]);
+
+  const scrollToSection = useCallback(
+    (id: string) => {
+      const sectionMap: Record<string, React.RefObject<HTMLElement | null>> = {
+        "#home": heroRef,
+        "#product": productRef,
+        "#pricing": pricingRef,
+        "#contact": contactRef,
+      };
+      const targetRef = sectionMap[id];
+      if (targetRef?.current) {
+        targetRef.current.scrollIntoView({ behavior: "smooth", block: "start" });
+        setActiveSection(id);
+      }
+    },
+    [],
+  );
 
   return (
     <>
-      <Navigation activeSection={activeSection} />
+      <Navigation activeSection={activeSection} onNavigate={scrollToSection} />
       <div
         ref={scrollContainerRef}
         className="h-screen overflow-y-auto scroll-smooth md:snap-y md:snap-mandatory"
@@ -187,14 +205,18 @@ export default function Home() {
               </p>
 
               <div className="flex items-center justify-center">
-                <a href="#contact" className="inline-flex">
+                <button
+                  type="button"
+                  className="inline-flex"
+                  onClick={() => scrollToSection("#contact")}
+                >
                   <Announcement movingBorder>
                     <AnnouncementTitle className="text-sm md:text-base">
                       Связаться с нами
                       <ArrowUpRightIcon className="shrink-0 text-muted-foreground" size={16} />
                     </AnnouncementTitle>
                   </Announcement>
-                </a>
+                </button>
               </div>
             </div>
           </div>

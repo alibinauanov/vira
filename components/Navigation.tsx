@@ -6,6 +6,7 @@ import { useEffect, useState } from "react";
 
 type NavigationProps = {
   activeSection?: string;
+  onNavigate?: (href: string) => void;
 };
 
 type NavItem = {
@@ -48,7 +49,7 @@ function Logo() {
   );
 }
 
-export default function Navigation({ activeSection }: NavigationProps) {
+export default function Navigation({ activeSection, onNavigate }: NavigationProps) {
   const [isOpen, setIsOpen] = useState(false);
   const [activeHash, setActiveHash] = useState("#home");
   const pathname = usePathname();
@@ -92,9 +93,10 @@ export default function Navigation({ activeSection }: NavigationProps) {
             {navItems.map((item) => {
               const active = isItemActive(item.href);
               return (
-                <Link
+                <button
                   key={item.name}
-                  href={item.href}
+                  type="button"
+                  onClick={() => onNavigate?.(item.href)}
                   className={`px-4 py-2 rounded-full text-sm font-medium transition-colors ${
                     active
                       ? "bg-slate-900 text-white"
@@ -102,7 +104,7 @@ export default function Navigation({ activeSection }: NavigationProps) {
                   }`}
                 >
                   {item.name}
-                </Link>
+                </button>
               );
             })}
           </div>
@@ -153,18 +155,21 @@ export default function Navigation({ activeSection }: NavigationProps) {
               {navItems.map((item) => {
                 const active = isItemActive(item.href);
                 return (
-                  <Link
+                  <button
                     key={item.name}
-                    href={item.href}
-                    className={`block px-3 py-2 rounded-lg text-sm font-medium transition-colors ${
+                    type="button"
+                    onClick={() => {
+                      onNavigate?.(item.href);
+                      setIsOpen(false);
+                    }}
+                    className={`w-full text-left px-3 py-2 rounded-lg text-sm font-medium transition-colors ${
                       active
                         ? "bg-slate-900 text-white"
                         : "text-slate-700 hover:bg-slate-100"
                     }`}
-                    onClick={() => setIsOpen(false)}
                   >
                     {item.name}
-                  </Link>
+                  </button>
                 );
               })}
             </div>
