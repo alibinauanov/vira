@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState } from "react";
+import Link from "next/link";
 import { ArrowUpRightIcon } from "lucide-react";
 
 import Navigation from "@/components/Navigation";
@@ -87,6 +88,7 @@ export default function Home() {
   const featureScrollRef = useRef<HTMLDivElement | null>(null);
   const heroRef = useRef<HTMLElement | null>(null);
   const productRef = useRef<HTMLElement | null>(null);
+  const demoRef = useRef<HTMLElement | null>(null);
   const pricingRef = useRef<HTMLElement | null>(null);
   const contactRef = useRef<HTMLElement | null>(null);
   const [activeSection, setActiveSection] = useState<string>("#home");
@@ -163,6 +165,7 @@ export default function Home() {
     const sections = [
       { ref: heroRef, id: "#home" },
       { ref: productRef, id: "#product" },
+      { ref: demoRef, id: "#demo" },
       { ref: pricingRef, id: "#pricing" },
       { ref: contactRef, id: "#contact" },
     ].filter((s) => s.ref.current) as {
@@ -195,6 +198,7 @@ export default function Home() {
     const sectionMap: Record<string, React.RefObject<HTMLElement | null>> = {
       "#home": heroRef,
       "#product": productRef,
+      "#demo": demoRef,
       "#pricing": pricingRef,
       "#contact": contactRef,
     };
@@ -218,6 +222,7 @@ export default function Home() {
       const sectionMap: Record<string, React.RefObject<HTMLElement | null>> = {
         "#home": heroRef,
         "#product": productRef,
+        "#demo": demoRef,
         "#pricing": pricingRef,
         "#contact": contactRef,
       };
@@ -362,6 +367,41 @@ export default function Home() {
                 </div>
               </div>
             ))}
+          </div>
+        </section>
+
+        <section
+          id="demo"
+          ref={demoRef}
+          className="relative z-10 w-full h-screen px-4 md:px-8 lg:px-12 xl:px-16 py-16 md:py-24 bg-white md:snap-start"
+        >
+          <div className="relative max-w-5xl mx-auto h-full flex flex-col items-center justify-center text-center gap-6 px-2">
+            <div className="inline-flex items-center gap-2 rounded-full bg-slate-900 text-white px-4 py-2 text-xs uppercase tracking-[0.08em]">
+              <span>Демо</span>
+            </div>
+            <h2 className="text-3xl md:text-4xl font-semibold text-slate-900">
+              Пример работы скоро станет доступен
+            </h2>
+            <p className="text-slate-600 max-w-3xl">
+              Готовим интерактивную демонстрацию, чтобы вы могли увидеть ключевые сценарии
+              вживую. Оставьте заявку и первыми попробуйте Vira в деле.
+            </p>
+            <div className="flex flex-col sm:flex-row items-center gap-3">
+              <Link
+                href="/demo"
+                className="inline-flex items-center gap-2 rounded-full bg-slate-900 text-white px-5 py-3 text-sm font-medium hover:bg-slate-800 transition shadow-sm"
+              >
+                Перейти к демо
+                <ArrowUpRightIcon className="h-4 w-4" />
+              </Link>
+              <button
+                type="button"
+                onClick={() => scrollToSection("#contact")}
+                className="inline-flex items-center gap-2 rounded-full border border-slate-200 px-5 py-3 text-sm font-medium text-slate-900 hover:bg-slate-100 transition"
+              >
+                Связаться с нами
+              </button>
+            </div>
           </div>
         </section>
 
