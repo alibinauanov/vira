@@ -118,57 +118,18 @@ export default function Home() {
     const outer = scrollContainerRef.current;
     if (!inner || !outer) return;
 
-    const edgeThreshold = 6;
-    const overscrollThreshold = 36;
-    const overscrollStep = 16;
-    const boundaryDelayMs = 320; // Delay handoff so the last feature isn't skipped on momentum
-    let touchStartY = 0;
-    let wheelBoundary: "top" | "bottom" | null = null;
-    let wheelAccumulated = 0;
-    let wheelBoundaryEnteredAt = 0;
-    let touchBoundary: "top" | "bottom" | null = null;
-    let touchAccumulated = 0;
-    let touchBoundaryEnteredAt = 0;
+    const atTop = () => inner.scrollTop <= 1;
+    const atBottom = () => inner.scrollHeight - inner.clientHeight - inner.scrollTop <= 1;
 
-    // Handoff scroll between feature list (inner) and page (outer) only after sustained overscroll
     const handleWheel = (event: WheelEvent) => {
       const deltaY = event.deltaY;
-      const atTop = inner.scrollTop <= edgeThreshold;
-      const atBottom = inner.scrollHeight - inner.clientHeight - inner.scrollTop <= edgeThreshold;
-      const boundary = deltaY < 0 && atTop ? "top" : deltaY > 0 && atBottom ? "bottom" : null;
-
-      if (!boundary) {
-        wheelBoundary = null;
-        wheelAccumulated = 0;
-        wheelBoundaryEnteredAt = 0;
-        return;
-      }
-
-      const now = performance.now();
-
-      if (wheelBoundary !== boundary) {
-        wheelBoundary = boundary;
-        wheelAccumulated = 0;
-        wheelBoundaryEnteredAt = now;
+      if ((deltaY < 0 && atTop()) || (deltaY > 0 && atBottom())) {
+        outer.scrollBy({ top: deltaY, behavior: "auto" });
         event.preventDefault();
-        return;
-      }
-
-      if (now - wheelBoundaryEnteredAt < boundaryDelayMs) {
-        wheelBoundaryEnteredAt = now;
-        event.preventDefault();
-        return;
-      }
-
-      const step = Math.sign(deltaY) * Math.min(Math.abs(deltaY), overscrollStep);
-      wheelAccumulated += step;
-      event.preventDefault();
-      if (Math.abs(wheelAccumulated) >= overscrollThreshold) {
-        outer.scrollBy({ top: deltaY, behavior: "smooth" });
-        wheelAccumulated = 0;
       }
     };
 
+    let touchStartY = 0;
     const handleTouchStart = (event: TouchEvent) => {
       if (event.touches.length !== 1) return;
       touchStartY = event.touches[0].clientY;
@@ -180,39 +141,9 @@ export default function Home() {
       const deltaY = touchStartY - currentY;
       touchStartY = currentY;
 
-      const atTop = inner.scrollTop <= edgeThreshold;
-      const atBottom = inner.scrollHeight - inner.clientHeight - inner.scrollTop <= edgeThreshold;
-      const boundary = deltaY < 0 && atTop ? "top" : deltaY > 0 && atBottom ? "bottom" : null;
-
-      if (!boundary) {
-        touchBoundary = null;
-        touchAccumulated = 0;
-        touchBoundaryEnteredAt = 0;
-        return;
-      }
-
-      const now = performance.now();
-
-      if (touchBoundary !== boundary) {
-        touchBoundary = boundary;
-        touchAccumulated = 0;
-        touchBoundaryEnteredAt = now;
+      if ((deltaY < 0 && atTop()) || (deltaY > 0 && atBottom())) {
+        outer.scrollBy({ top: deltaY, behavior: "auto" });
         event.preventDefault();
-        return;
-      }
-
-      if (now - touchBoundaryEnteredAt < boundaryDelayMs) {
-        touchBoundaryEnteredAt = now;
-        event.preventDefault();
-        return;
-      }
-
-      const step = Math.sign(deltaY) * Math.min(Math.abs(deltaY), overscrollStep);
-      touchAccumulated += step;
-      event.preventDefault();
-      if (Math.abs(touchAccumulated) >= overscrollThreshold) {
-        outer.scrollBy({ top: deltaY, behavior: "smooth" });
-        touchAccumulated = 0;
       }
     };
 
