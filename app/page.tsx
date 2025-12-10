@@ -380,11 +380,11 @@ export default function Home() {
               <span>Демо</span>
             </div>
             <h2 className="text-3xl md:text-4xl font-semibold text-slate-900">
-              Пример работы скоро станет доступен
+              Посмотрите демо прямо сейчас
             </h2>
             <p className="text-slate-600 max-w-3xl">
-              Готовим интерактивную демонстрацию, чтобы вы могли увидеть ключевые сценарии
-              вживую. Оставьте заявку и первыми попробуйте Vira в деле.
+              Запустите интерактивную демонстрацию и оцените ключевые сценарии: рассылки, бронь, знания и аналитику
+              для вашего ресторана.
             </p>
             <div className="flex flex-col sm:flex-row items-center gap-3">
               <Link
