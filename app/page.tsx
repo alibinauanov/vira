@@ -7,30 +7,37 @@ import Navigation from "@/components/Navigation";
 import { Announcement, AnnouncementTitle } from "@/components/ui/announcement";
 
 export default function Home() {
-  const features = [
+  type Feature = {
+    title: string;
+    impact: string;
+    image?: string;
+    images?: string[];
+  };
+
+  const features: Feature[] = [
     {
       title: "ИИ-агент для обработки обращений",
       impact:
         "Быстрые ответы на обращения клиентов повысят доходимость на 20%",
-      image: "/1.png",
+      image: "/screen1.png",
     },
     {
       title: "Бронь столиков",
       impact:
         "Быстрая бронь столиков и автоматические напоминания клиенту увеличат доходимость на 30%",
-      image: "/2.png",
+      images: ["/screen2.png", "/screen3.png"],
     },
     {
       title: "Рассылка по базе номеров",
       impact:
         "Регулярные напоминания о вашем заведении и персональные плюшки увеличат повторные посещения на 35%",
-      image: "/3.png",
+      image: "/screen4.png",
     },
     {
       title: "Удобная система заказов",
       impact:
         "Подписки на ваше заведение и возможность сделать заказ быстро через сайт увеличит LTV на 40%",
-      image: "/4.png",
+      image: "/screen5.png",
     },
   ];
 
@@ -40,7 +47,7 @@ export default function Home() {
       price: "20,000 ₸",
       cadence: "первый месяц",
       points: [
-        "Весь функционал на первый месяц",
+        "Весь функционал",
       ],
       cta: "Связаться",
       highlight: false,
@@ -105,6 +112,54 @@ export default function Home() {
     sections.forEach((el) => observer.observe(el));
     return () => observer.disconnect();
   }, [features.length]);
+
+  useEffect(() => {
+    const inner = featureScrollRef.current;
+    const outer = scrollContainerRef.current;
+    if (!inner || !outer) return;
+
+    let touchStartY = 0;
+    const handleWheel = (event: WheelEvent) => {
+      const deltaY = event.deltaY;
+      const threshold = 6;
+      const atTop = inner.scrollTop <= threshold;
+      const atBottom = inner.scrollHeight - inner.clientHeight - inner.scrollTop <= threshold;
+
+      if ((deltaY < 0 && atTop) || (deltaY > 0 && atBottom)) {
+        event.preventDefault();
+        outer.scrollBy({ top: deltaY, behavior: "smooth" });
+      }
+    };
+
+    const handleTouchStart = (event: TouchEvent) => {
+      if (event.touches.length !== 1) return;
+      touchStartY = event.touches[0].clientY;
+    };
+
+    const handleTouchMove = (event: TouchEvent) => {
+      if (event.touches.length !== 1) return;
+      const currentY = event.touches[0].clientY;
+      const deltaY = touchStartY - currentY;
+      const threshold = 6;
+      const atTop = inner.scrollTop <= threshold;
+      const atBottom = inner.scrollHeight - inner.clientHeight - inner.scrollTop <= threshold;
+
+      if ((deltaY < 0 && atTop) || (deltaY > 0 && atBottom)) {
+        event.preventDefault();
+        outer.scrollBy({ top: deltaY, behavior: "smooth" });
+      }
+    };
+
+    inner.addEventListener("wheel", handleWheel, { passive: false });
+    inner.addEventListener("touchstart", handleTouchStart, { passive: true });
+    inner.addEventListener("touchmove", handleTouchMove, { passive: false });
+
+    return () => {
+      inner.removeEventListener("wheel", handleWheel);
+      inner.removeEventListener("touchstart", handleTouchStart);
+      inner.removeEventListener("touchmove", handleTouchMove);
+    };
+  }, []);
 
   useEffect(() => {
     const root = scrollContainerRef.current;
@@ -229,7 +284,7 @@ export default function Home() {
         <section
           id="product"
           ref={productRef}
-          className="relative z-10 w-full h-screen px-0 md:px-8 lg:px-12 xl:px-16 py-12 md:py-20 bg-white/60 backdrop-blur md:snap-start flex flex-col"
+          className="relative z-10 w-full h-screen px-0 md:px-8 lg:px-12 xl:px-16 py-12 md:py-20 bg-white/60 backdrop-blur md:snap-start md:snap-always flex flex-col"
         >
           <div className="relative md:sticky md:top-28 z-40 px-6 md:px-12 pt-2 pb-4 bg-white md:bg-white/85 md:backdrop-blur">
             <h2 className="text-2xl md:text-3xl font-semibold text-slate-900">
@@ -262,9 +317,9 @@ export default function Home() {
                 ref={(el) => {
                   featureRefs.current[index] = el;
                 }}
-                className="snap-start snap-always min-h-full flex flex-col md:flex-row items-center justify-center gap-10 px-6 md:px-12 py-12"
+                className="snap-start snap-always min-h-full flex flex-col md:flex-row items-center justify-start md:justify-center gap-6 md:gap-10 px-6 md:px-12 py-10 md:py-12"
               >
-                <div className="md:w-1/2 space-y-4">
+                <div className="md:w-1/2 space-y-3 md:space-y-4">
                   <div className="text-sm uppercase tracking-[0.08em] text-slate-500">
                     0{index + 1}
                   </div>
@@ -277,13 +332,35 @@ export default function Home() {
                 </div>
 
                 <div className="md:w-1/2 w-full">
-                  <div className="bg-white rounded-2xl overflow-hidden flex items-center justify-center">
-                    <img
-                      src={feature.image}
-                      alt={feature.title}
-                      className="block w-full h-auto max-h-[50vh] md:max-h-[55vh] object-contain"
-                      loading="lazy"
-                    />
+                  <div
+                    className={`rounded-2xl ${
+                      feature.images
+                        ? "grid items-start grid-cols-2 gap-2 md:gap-3"
+                        : "overflow-hidden flex items-center justify-center"
+                    }`}
+                  >
+                    {feature.images ? (
+                      feature.images.map((src, imgIndex) => (
+                        <div
+                          key={`${feature.title}-${src}`}
+                          className="rounded-xl overflow-hidden flex items-center justify-center"
+                        >
+                          <img
+                            src={src}
+                            alt={`${feature.title} — экран ${imgIndex + 1}`}
+                            className="block w-full h-auto object-contain max-h-[46vh] sm:max-h-[56vh] md:max-h-[64vh]"
+                            loading="lazy"
+                          />
+                        </div>
+                      ))
+                    ) : (
+                      <img
+                        src={feature.image}
+                        alt={feature.title}
+                        className="block w-full h-auto max-h-[50vh] md:max-h-[55vh] object-contain"
+                        loading="lazy"
+                      />
+                    )}
                   </div>
                 </div>
               </div>
