@@ -121,13 +121,25 @@ export default function Home() {
     const outer = scrollContainerRef.current;
     if (!inner || !outer) return;
 
+    const clampDelta = (delta: number) => {
+      const limit = outer.clientHeight || window.innerHeight;
+      if (!Number.isFinite(limit) || limit <= 0) return delta;
+      return Math.sign(delta) * Math.min(Math.abs(delta), limit);
+    };
+
+    const forwardScroll = (delta: number) => {
+      const adjusted = clampDelta(delta);
+      if (adjusted === 0) return;
+      outer.scrollBy({ top: adjusted, behavior: "auto" });
+    };
+
     const atTop = () => inner.scrollTop <= 1;
     const atBottom = () => inner.scrollHeight - inner.clientHeight - inner.scrollTop <= 1;
 
     const handleWheel = (event: WheelEvent) => {
       const deltaY = event.deltaY;
       if ((deltaY < 0 && atTop()) || (deltaY > 0 && atBottom())) {
-        outer.scrollBy({ top: deltaY, behavior: "auto" });
+        forwardScroll(deltaY);
         event.preventDefault();
       }
     };
@@ -145,7 +157,7 @@ export default function Home() {
       touchStartY = currentY;
 
       if ((deltaY < 0 && atTop()) || (deltaY > 0 && atBottom())) {
-        outer.scrollBy({ top: deltaY, behavior: "auto" });
+        forwardScroll(deltaY);
         event.preventDefault();
       }
     };
@@ -246,7 +258,7 @@ export default function Home() {
         <section
           id="home"
           ref={heroRef}
-          className="relative h-screen w-full bg-white bg-[url('https://raw.githubusercontent.com/prebuiltui/prebuiltui/main/assets/hero/gridBackground.png')] bg-no-repeat bg-cover bg-center bg-blend-lighten text-sm text-slate-900 overflow-hidden md:snap-start"
+          className="relative h-screen w-full bg-white bg-[url('https://raw.githubusercontent.com/prebuiltui/prebuiltui/main/assets/hero/gridBackground.png')] bg-no-repeat bg-cover bg-center bg-blend-lighten text-sm text-slate-900 overflow-hidden md:snap-start md:snap-always"
         >
           <div className="absolute inset-0 bg-white/70" aria-hidden="true" />
           <div className="hero-dots" aria-hidden="true" />
@@ -374,7 +386,7 @@ export default function Home() {
         <section
           id="demo"
           ref={demoRef}
-          className="relative z-10 w-full h-screen px-4 md:px-8 lg:px-12 xl:px-16 py-16 md:py-24 bg-white md:snap-start"
+          className="relative z-10 w-full h-screen px-4 md:px-8 lg:px-12 xl:px-16 py-16 md:py-24 bg-white md:snap-start md:snap-always"
         >
           <div className="relative max-w-5xl mx-auto h-full flex flex-col items-center justify-center text-center gap-6 px-2">
             <div className="inline-flex items-center gap-2 rounded-full bg-slate-900 text-white px-4 py-2 text-xs uppercase tracking-[0.08em]">
@@ -409,7 +421,7 @@ export default function Home() {
         <section
           id="pricing"
           ref={pricingRef}
-          className="relative z-10 w-full min-h-[120vh] md:h-screen px-4 md:px-8 lg:px-12 xl:px-16 py-16 md:py-24 bg-white md:snap-start mt-16 md:mt-0"
+          className="relative z-10 w-full min-h-[120vh] md:h-screen px-4 md:px-8 lg:px-12 xl:px-16 py-16 md:py-24 bg-white md:snap-start md:snap-always mt-16 md:mt-0"
         >
           <div className="max-w-6xl mx-auto h-full flex flex-col items-center text-center gap-6 justify-center">
             <div className="space-y-3">
@@ -485,7 +497,7 @@ export default function Home() {
         <section
           id="contact"
           ref={contactRef}
-          className="relative z-10 w-full h-screen px-4 md:px-8 lg:px-12 xl:px-16 py-16 md:py-24 bg-white md:snap-start"
+          className="relative z-10 w-full h-screen px-4 md:px-8 lg:px-12 xl:px-16 py-16 md:py-24 bg-white md:snap-start md:snap-always"
         >
           <div className="max-w-5xl mx-auto h-full flex flex-col items-center justify-center text-center gap-6">
             <div className="space-y-3">
