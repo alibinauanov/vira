@@ -16,6 +16,7 @@ type NavItem = {
 
 const navItems: NavItem[] = [
   { name: "Главная", href: "#home" },
+  { name: "Метрики", href: "#metrics" },
   { name: "Функции", href: "#product" },
   { name: "Демо", href: "#demo" },
   { name: "Тарифы", href: "#pricing" },
@@ -69,7 +70,7 @@ export default function Navigation({ activeSection, onNavigate }: NavigationProp
   };
 
   return (
-    <header className="fixed top-6 left-1/2 z-50 w-full max-w-2xl -translate-x-1/2 px-4">
+    <header className="fixed top-6 left-1/2 z-50 w-full max-w-4xl -translate-x-1/2 px-4">
       <div className="relative border border-slate-200 bg-white/85 backdrop-blur shadow-sm rounded-2xl md:rounded-full">
         <div className="flex items-center justify-between gap-4 px-4 py-3 md:px-6">
           <button

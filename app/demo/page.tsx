@@ -1,5 +1,6 @@
 "use client";
 
+import { useMemo, useState } from "react";
 import { PhoneIcon, SearchIcon, SendIcon, VideoIcon } from "lucide-react";
 
 import { Badge } from "@/components/ui/badge";
@@ -22,31 +23,53 @@ type Message = {
 };
 
 const chats: ChatPreview[] = [
-  { name: "Алексей", note: "Рассылку посмотрю!", time: "10:18", unread: 2, channel: "wa" },
-  { name: "Ольга", note: "Ок, отправляйте меню", time: "09:50", channel: "wa" },
-  { name: "Данияр", note: "Жду ссылку", time: "09:22", channel: "tg" },
-  { name: "Айгуль", note: "Показать рассылку", time: "Вчера", channel: "wa" },
-  { name: "Сергей", note: "Спасибо, скоро придём", time: "Вчера", unread: 1, channel: "sms" },
-  { name: "Нурлан", note: "Есть акция на субботу?", time: "Пт", channel: "wa" },
+  { name: "Жанна", note: "Что у вас по бранчам?", time: "10:18", unread: 2, channel: "wa" },
+  { name: "Карина", note: "Можно забронировать на двоих?", time: "09:50", channel: "wa" },
+  { name: "Ермек", note: "Есть детское меню?", time: "09:22", channel: "tg" },
+  { name: "Ольга", note: "Автонaпоминание о визите", time: "Вчера", channel: "wa" },
+  { name: "Данияр", note: "Новое меню: отправили рассылку", time: "Вчера", unread: 1, channel: "sms" },
 ];
 
-const messages: Message[] = [
-  { from: "manager", text: "Привет! Это Vira. Запустили рассылку по VIP-гостям о бранче в субботу.", time: "10:06" },
-  {
-    from: "manager",
-    text: "Отправили 1,243 сообщения, доставлено 1,201. Хотите добавить ещё персональный купон?",
-    time: "10:07",
-    highlight: true,
-  },
-  { from: "client", text: "Да, нужно +10% гостям, у кого было 2 визита за месяц.", time: "10:08" },
-  { from: "manager", text: "Готово. Перезапускаю рассылку по сегменту “частые гости”.", time: "10:09" },
-  { from: "manager", text: "Текст: «Ждём на бранче в субботу с -10% по промокоду BRUNCH10»", time: "10:09" },
-  { from: "client", text: "Ок. Поставьте отправку на 12:00 и автонапоминание за час.", time: "10:10" },
-  { from: "manager", text: "Запланировано. Отчет отправлю после отправки.", time: "10:11" },
-  { from: "client", text: "Спасибо!", time: "10:11" },
-];
+const messagesByChat: Record<string, Message[]> = {
+  Жанна: [
+    { from: "manager", text: "Привет! Это Vira. Подскажите, интересует бранч или ужин?", time: "10:16" },
+    { from: "client", text: "Бранч, что в меню и во сколько начинаете?", time: "10:17" },
+    { from: "manager", text: "Старт в 11:00, сет из 6 блюд и безлимит кофе за 8 900 ₸. Забронировать стол у окна?", time: "10:17" },
+  ],
+  Карина: [
+    { from: "client", text: "Можно забронировать стол на двоих на сегодня 19:30?", time: "09:48" },
+    { from: "manager", text: "Да, доступны столы 5 и 9. Предпочтения по зоне?", time: "09:49" },
+    { from: "client", text: "Ближе к окну, пожалуйста.", time: "09:49" },
+  ],
+  Ермек: [
+    { from: "client", text: "Привет! Есть детское меню и стульчики?", time: "09:20" },
+    { from: "manager", text: "Да, детское меню есть, стульчики тоже. Нужен стол на сегодня?", time: "09:21" },
+    { from: "client", text: "Да, на 4 человек в 18:00.", time: "09:21" },
+  ],
+  Ольга: [
+    { from: "manager", text: "Добрый день! Напоминаем о вашем бронировании на завтра в 20:00. Подтвердить визит?", time: "Вчера" },
+    { from: "client", text: "Да, будем вдвоём.", time: "Вчера" },
+    { from: "manager", text: "Отлично, стол 6 за вами. Напомнить за час?", time: "Вчера" },
+  ],
+  Данияр: [
+    { from: "manager", text: "Запустили рассылку: новое меню с локальной рыбой. Хотите посмотреть?", time: "Вчера" },
+    { from: "client", text: "Да, пришлите топ-3 блюда.", time: "Вчера" },
+    {
+      from: "manager",
+      text: "Отправили 3 рекомендации и купон -10% до воскресенья. Показать аналитику по доставке?",
+      time: "Вчера",
+      highlight: true,
+    },
+  ],
+};
 
 export default function DemoMailingsPage() {
+  const [activeChat, setActiveChat] = useState<ChatPreview>(chats[0]);
+  const messages = useMemo(
+    () => messagesByChat[activeChat.name] ?? [],
+    [activeChat.name],
+  );
+
   return (
     <div className="flex flex-col lg:flex-row h-auto lg:h-[calc(100vh-140px)] gap-4">
       <aside className="w-full lg:max-w-xs rounded-3xl border border-slate-200 bg-white shadow-sm">
@@ -66,11 +89,16 @@ export default function DemoMailingsPage() {
         </div>
 
         <div className="divide-y divide-slate-200">
-          {chats.map((chat) => (
+          {chats.map((chat) => {
+            const isActive = chat.name === activeChat.name;
+            return (
             <button
               key={chat.name}
               type="button"
-              className="flex w-full items-start gap-3 px-4 py-3 text-left hover:bg-slate-50"
+              onClick={() => setActiveChat(chat)}
+              className={`flex w-full items-start gap-3 px-4 py-3 text-left hover:bg-slate-50 ${
+                isActive ? "bg-slate-100" : ""
+              }`}
             >
               <div className="h-10 w-10 rounded-full bg-slate-900 text-white flex items-center justify-center text-sm font-semibold">
                 {chat.name.slice(0, 1).toUpperCase()}
@@ -97,7 +125,8 @@ export default function DemoMailingsPage() {
                 }`}
               />
             </button>
-          ))}
+            );
+          })}
         </div>
       </aside>
 
@@ -108,8 +137,15 @@ export default function DemoMailingsPage() {
               V
             </div>
             <div>
-              <p className="text-lg font-semibold text-slate-900">Алексей</p>
-              <p className="text-sm text-slate-500">онлайн • VIP гость</p>
+              <p className="text-lg font-semibold text-slate-900">{activeChat.name}</p>
+              <p className="text-sm text-slate-500">
+                {activeChat.channel === "wa"
+                  ? "WhatsApp"
+                  : activeChat.channel === "tg"
+                    ? "Telegram"
+                    : "SMS"}{" "}
+                • клиент
+              </p>
             </div>
           </div>
           <div />

@@ -36,7 +36,7 @@ type DemoLayoutProps = {
 };
 
 const navItems = [
-  { href: "/demo", label: "Рассылки", icon: SendIcon },
+  { href: "/demo", label: "Чаты", icon: SendIcon },
   { href: "/demo/knowledge", label: "База знаний", icon: BookOpenIcon },
   { href: "/demo/booking", label: "Бронь", icon: CalendarCheck2Icon },
   { href: "/demo/subscriptions", label: "Подписки", icon: Repeat2Icon },
@@ -61,10 +61,7 @@ export default function DemoLayout({ children }: DemoLayoutProps) {
               <Image src="/logo.png" alt="Vira" fill sizes="40px" className="object-cover" />
             </div>
             <div className="space-y-1 group-data-[collapsible=icon]:hidden">
-              <p className="text-sm font-semibold">Vira Demo</p>
-              <p className="text-xs text-sidebar-foreground/70">
-                Предпросмотр ключевых сценариев
-              </p>
+              <p className="text-sm font-semibold">Ваш ресторан</p>
             </div>
           </div>
         </SidebarHeader>

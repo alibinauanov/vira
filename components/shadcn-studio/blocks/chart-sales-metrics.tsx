@@ -101,8 +101,8 @@ const SalesMetricsCard = ({ className }: { className?: string }) => {
                 alt='logo'
               />
               <div className='flex flex-col gap-0.5'>
-                <span className='text-xl font-medium'>Vira Restaurant</span>
-                <span className='text-muted-foreground text-sm'>info@vira.com</span>
+                <span className='text-xl font-medium'>Ваш ресторан</span>
+                <span className='text-muted-foreground text-sm'>info@restaurant.com</span>
               </div>
             </div>
 
