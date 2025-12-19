@@ -279,7 +279,7 @@ export default function Home() {
   }, [recalcFeatureLayout, updateFeatureProgress]);
 
   const featureContainerClasses =
-    "mt-2 flex justify-start gap-6 md:gap-8 px-6 md:px-12 pb-2 will-change-transform";
+    "mt-2 flex h-full items-stretch justify-start gap-6 md:gap-8 px-4 md:px-12 pb-2 will-change-transform";
 
   return (
     <>
@@ -367,7 +367,7 @@ export default function Home() {
           style={featureSectionHeight ? { height: `${featureSectionHeight}px` } : undefined}
           className="relative z-10 w-full min-h-screen bg-white/60 backdrop-blur md:snap-start md:snap-always"
         >
-          <div className="sticky top-0 h-screen flex flex-col gap-8 md:gap-12 px-0 md:px-8 lg:px-12 xl:px-16 py-12 md:py-20">
+          <div className="sticky top-0 h-screen flex flex-col gap-6 md:gap-12 px-0 md:px-8 lg:px-12 xl:px-16 py-8 md:py-20">
             <div className="px-6 md:px-12 pt-2 pb-2">
               <h2 className="text-2xl md:text-3xl font-semibold text-slate-900">
                 Что мы делаем
@@ -397,7 +397,7 @@ export default function Home() {
                   return (
                     <div
                       key={feature.title}
-                      className="min-w-[85vw] md:min-w-[540px] lg:min-w-[620px] flex flex-col md:flex-row items-center md:items-start justify-start gap-6 md:gap-10 px-6 md:px-10 lg:px-12 py-10 md:py-12 rounded-3xl bg-white/80 backdrop-blur shadow-sm"
+                      className="min-w-[85vw] md:min-w-[540px] lg:min-w-[620px] flex h-full md:h-auto flex-col md:flex-row items-center md:items-start justify-start gap-6 md:gap-10 px-5 md:px-10 lg:px-12 py-8 md:py-12 rounded-3xl bg-white/80 backdrop-blur shadow-sm"
                     >
                       <div className="md:w-1/2 space-y-3 md:space-y-4">
                         <div className="text-sm uppercase tracking-[0.08em] text-slate-500">
@@ -406,7 +406,7 @@ export default function Home() {
                         <h3 className="text-2xl md:text-3xl font-semibold text-slate-900 leading-tight">
                           {feature.title}
                         </h3>
-                        <p className="text-lg md:text-xl text-slate-600 font-medium leading-relaxed">
+                        <p className="text-base md:text-lg text-slate-600 font-medium leading-relaxed">
                           {feature.impact}
                         </p>
                       </div>
@@ -418,7 +418,7 @@ export default function Home() {
                               <img
                                 src={activeGalleryImage}
                                 alt={`${feature.title} — экран ${activeGalleryIndex + 1}`}
-                                className="block w-full h-auto object-contain max-h-[42vh] sm:max-h-[50vh] md:max-h-[60vh] transition-opacity duration-300"
+                                className="block w-full h-auto object-contain max-h-[34vh] sm:max-h-[42vh] md:max-h-[60vh] transition-opacity duration-300"
                                 loading="lazy"
                               />
                             </div>
@@ -472,7 +472,7 @@ export default function Home() {
                             <img
                               src={feature.image}
                               alt={feature.title}
-                              className="block w-full h-auto max-h-[50vh] md:max-h-[55vh] object-contain"
+                              className="block w-full h-auto max-h-[42vh] sm:max-h-[48vh] md:max-h-[55vh] object-contain"
                               loading="lazy"
                             />
                           </div>
