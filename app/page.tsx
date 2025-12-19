@@ -97,9 +97,7 @@ export default function Home() {
     { value: "3%", description: "увеличили клиентов с подписками на заведение" },
   ];
 
-  const [activeSlide, setActiveSlide] = useState(0);
   const [galleryIndices, setGalleryIndices] = useState<Record<number, number>>({});
-  const featureRefs = useRef<(HTMLElement | null)[]>([]);
   const scrollContainerRef = useRef<HTMLDivElement | null>(null);
   const featureScrollRef = useRef<HTMLDivElement | null>(null);
   const heroRef = useRef<HTMLElement | null>(null);
@@ -109,95 +107,6 @@ export default function Home() {
   const pricingRef = useRef<HTMLElement | null>(null);
   const contactRef = useRef<HTMLElement | null>(null);
   const [activeSection, setActiveSection] = useState<string>("#home");
-
-  useEffect(() => {
-    const root = featureScrollRef.current;
-    if (!root) return;
-
-    const handleScroll = () => {
-      const slides = featureRefs.current.filter(Boolean) as HTMLElement[];
-      if (!slides.length) return;
-
-      const rootRect = root.getBoundingClientRect();
-      const viewportCenter = rootRect.top + rootRect.height / 2;
-      let closestIndex = 0;
-      let smallestDistance = Number.POSITIVE_INFINITY;
-
-      slides.forEach((slide, idx) => {
-        const slideRect = slide.getBoundingClientRect();
-        const slideCenter = slideRect.top + slideRect.height / 2;
-        const distance = Math.abs(slideCenter - viewportCenter);
-
-        if (distance < smallestDistance) {
-          smallestDistance = distance;
-          closestIndex = idx;
-        }
-      });
-
-      setActiveSlide(closestIndex);
-    };
-
-    handleScroll();
-    root.addEventListener("scroll", handleScroll, { passive: true });
-    return () => root.removeEventListener("scroll", handleScroll);
-  }, [features.length]);
-
-  useEffect(() => {
-    const inner = featureScrollRef.current;
-    const outer = scrollContainerRef.current;
-    if (!inner || !outer) return;
-
-    const clampDelta = (delta: number) => {
-      const limit = outer.clientHeight || window.innerHeight;
-      if (!Number.isFinite(limit) || limit <= 0) return delta;
-      return Math.sign(delta) * Math.min(Math.abs(delta), limit);
-    };
-
-    const forwardScroll = (delta: number) => {
-      const adjusted = clampDelta(delta);
-      if (adjusted === 0) return;
-      outer.scrollBy({ top: adjusted, behavior: "auto" });
-    };
-
-    const atTop = () => inner.scrollTop <= 1;
-    const atBottom = () => inner.scrollHeight - inner.clientHeight - inner.scrollTop <= 1;
-
-    const handleWheel = (event: WheelEvent) => {
-      const deltaY = event.deltaY;
-      if ((deltaY < 0 && atTop()) || (deltaY > 0 && atBottom())) {
-        forwardScroll(deltaY);
-        event.preventDefault();
-      }
-    };
-
-    let touchStartY = 0;
-    const handleTouchStart = (event: TouchEvent) => {
-      if (event.touches.length !== 1) return;
-      touchStartY = event.touches[0].clientY;
-    };
-
-    const handleTouchMove = (event: TouchEvent) => {
-      if (event.touches.length !== 1) return;
-      const currentY = event.touches[0].clientY;
-      const deltaY = touchStartY - currentY;
-      touchStartY = currentY;
-
-      if ((deltaY < 0 && atTop()) || (deltaY > 0 && atBottom())) {
-        forwardScroll(deltaY);
-        event.preventDefault();
-      }
-    };
-
-    inner.addEventListener("wheel", handleWheel, { passive: false });
-    inner.addEventListener("touchstart", handleTouchStart, { passive: true });
-    inner.addEventListener("touchmove", handleTouchMove, { passive: false });
-
-    return () => {
-      inner.removeEventListener("wheel", handleWheel);
-      inner.removeEventListener("touchstart", handleTouchStart);
-      inner.removeEventListener("touchmove", handleTouchMove);
-    };
-  }, []);
 
   useEffect(() => {
     const root = scrollContainerRef.current;
@@ -299,6 +208,18 @@ export default function Home() {
     [],
   );
 
+  useEffect(() => {
+    featureScrollRef.current?.scrollTo({ left: 0, behavior: "auto" });
+  }, []);
+
+  useEffect(() => {
+    if (activeSection !== "#product") return;
+    featureScrollRef.current?.scrollTo({ left: 0, behavior: "auto" });
+  }, [activeSection]);
+
+  const featureContainerClasses =
+    "mt-2 flex justify-start gap-6 md:gap-8 overflow-x-auto snap-x snap-mandatory px-6 md:px-12 pb-2 no-scrollbar scroll-smooth";
+
   return (
     <>
       <Navigation activeSection={activeSection} onNavigate={scrollToSection} />
@@ -382,9 +303,9 @@ export default function Home() {
         <section
           id="product"
           ref={productRef}
-          className="relative z-10 w-full h-screen px-0 md:px-8 lg:px-12 xl:px-16 py-12 md:py-20 bg-white/60 backdrop-blur md:snap-start md:snap-always flex flex-col"
+          className="relative z-10 w-full min-h-screen px-0 md:px-8 lg:px-12 xl:px-16 py-12 md:py-20 bg-white/60 backdrop-blur flex flex-col gap-8 md:gap-12 md:snap-start md:snap-always"
         >
-          <div className="relative md:sticky md:top-28 z-40 px-6 md:px-12 pt-2 pb-4 bg-white md:bg-white/85 md:backdrop-blur">
+          <div className="px-6 md:px-12 pt-2 pb-2">
             <h2 className="text-2xl md:text-3xl font-semibold text-slate-900">
               Что мы делаем
             </h2>
@@ -392,22 +313,9 @@ export default function Home() {
               Четыре ключевых сценария, которые увеличат посещаемость и LTV вашего
               заведения.
             </p>
-            <div className="flex items-center gap-2 pt-3">
-              {features.map((_, idx) => (
-                <span
-                  key={idx}
-                  className={`h-[3px] flex-1 rounded-full transition-colors duration-300 ${
-                    idx === activeSlide ? "bg-slate-900" : "bg-slate-200"
-                  }`}
-                />
-              ))}
-            </div>
           </div>
 
-          <div
-            ref={featureScrollRef}
-            className="mt-4 flex-1 snap-y snap-mandatory overflow-y-auto no-scrollbar scroll-smooth"
-          >
+          <div ref={featureScrollRef} className={featureContainerClasses}>
             {features.map((feature, index) => {
               const galleryImages = feature.images ?? [];
               const hasGallery = galleryImages.length > 0;
@@ -421,11 +329,7 @@ export default function Home() {
               return (
                 <div
                   key={feature.title}
-                  data-index={index}
-                  ref={(el) => {
-                    featureRefs.current[index] = el;
-                  }}
-                  className="snap-start snap-always min-h-full flex flex-col md:flex-row items-center justify-start md:justify-center gap-6 md:gap-10 px-6 md:px-12 py-10 md:py-12"
+                  className="min-w-[85vw] md:min-w-[540px] lg:min-w-[620px] flex flex-col md:flex-row items-center md:items-start justify-start gap-6 md:gap-10 px-6 md:px-10 lg:px-12 py-10 md:py-12 rounded-3xl border border-slate-200 bg-white/80 backdrop-blur shadow-sm snap-center md:snap-start"
                 >
                   <div className="md:w-1/2 space-y-3 md:space-y-4">
                     <div className="text-sm uppercase tracking-[0.08em] text-slate-500">
@@ -441,7 +345,7 @@ export default function Home() {
 
                   <div className="md:w-1/2 w-full">
                     {hasGallery && activeGalleryImage ? (
-                      <div className="relative flex items-center justify-center">
+                      <div className="flex flex-col items-center gap-4">
                         <div className="rounded-2xl overflow-hidden bg-white/70 flex items-center justify-center w-full">
                           <img
                             src={activeGalleryImage}
@@ -453,33 +357,35 @@ export default function Home() {
 
                         {totalImages > 1 && (
                           <>
-                            <button
-                              type="button"
-                              onClick={() => changeGalleryImage(index, -1, totalImages)}
-                              className={`pointer-events-auto absolute top-1/2 -translate-y-1/2 inline-flex items-center justify-center rounded-full border transition ${
-                                isBookingFeature
-                                  ? "h-14 w-14 bg-slate-900 text-white border-slate-900 shadow-lg ring-2 ring-emerald-200 hover:bg-slate-800 left-2 sm:left-3"
-                                  : "h-10 w-10 bg-white/90 text-slate-900 shadow-sm border-slate-200 hover:bg-white -left-1"
-                              }`}
-                              aria-label="Предыдущий экран"
-                            >
-                              <ChevronLeft className={isBookingFeature ? "h-6 w-6 sm:h-7 sm:w-7" : "h-5 w-5"} />
-                            </button>
+                            <div className="flex items-center justify-center gap-3">
+                              <button
+                                type="button"
+                                onClick={() => changeGalleryImage(index, -1, totalImages)}
+                                className={`pointer-events-auto inline-flex items-center justify-center rounded-full border transition ${
+                                  isBookingFeature
+                                    ? "h-14 w-14 bg-slate-900 text-white border-slate-900 shadow-lg ring-2 ring-emerald-200 hover:bg-slate-800"
+                                    : "h-10 w-10 bg-white/90 text-slate-900 shadow-sm border-slate-200 hover:bg-white"
+                                }`}
+                                aria-label="Предыдущий экран"
+                              >
+                                <ChevronLeft className={isBookingFeature ? "h-6 w-6 sm:h-7 sm:w-7" : "h-5 w-5"} />
+                              </button>
 
-                            <button
-                              type="button"
-                              onClick={() => changeGalleryImage(index, 1, totalImages)}
-                              className={`pointer-events-auto absolute top-1/2 -translate-y-1/2 inline-flex items-center justify-center rounded-full border transition ${
-                                isBookingFeature
-                                  ? "h-14 w-14 bg-slate-900 text-white border-slate-900 shadow-lg ring-2 ring-emerald-200 hover:bg-slate-800 right-2 sm:right-3"
-                                  : "h-10 w-10 bg-white/90 text-slate-900 shadow-sm border-slate-200 hover:bg-white -right-1"
-                              }`}
-                              aria-label="Следующий экран"
-                            >
-                              <ChevronRight className={isBookingFeature ? "h-6 w-6 sm:h-7 sm:w-7" : "h-5 w-5"} />
-                            </button>
+                              <button
+                                type="button"
+                                onClick={() => changeGalleryImage(index, 1, totalImages)}
+                                className={`pointer-events-auto inline-flex items-center justify-center rounded-full border transition ${
+                                  isBookingFeature
+                                    ? "h-14 w-14 bg-slate-900 text-white border-slate-900 shadow-lg ring-2 ring-emerald-200 hover:bg-slate-800"
+                                    : "h-10 w-10 bg-white/90 text-slate-900 shadow-sm border-slate-200 hover:bg-white"
+                                }`}
+                                aria-label="Следующий экран"
+                              >
+                                <ChevronRight className={isBookingFeature ? "h-6 w-6 sm:h-7 sm:w-7" : "h-5 w-5"} />
+                              </button>
+                            </div>
 
-                            <div className="pointer-events-none absolute bottom-3 left-0 right-0 flex items-center justify-center gap-1.5">
+                            <div className="flex items-center justify-center gap-1.5">
                               {galleryImages.map((_, dotIdx) => (
                                 <span
                                   key={`${feature.title}-dot-${dotIdx}`}
