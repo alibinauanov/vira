@@ -99,7 +99,8 @@ export default function Home() {
 
   const [galleryIndices, setGalleryIndices] = useState<Record<number, number>>({});
   const scrollContainerRef = useRef<HTMLDivElement | null>(null);
-  const featureScrollRef = useRef<HTMLDivElement | null>(null);
+  const featureTrackRef = useRef<HTMLDivElement | null>(null);
+  const featureMaxScrollRef = useRef(0);
   const heroRef = useRef<HTMLElement | null>(null);
   const metricsRef = useRef<HTMLElement | null>(null);
   const productRef = useRef<HTMLElement | null>(null);
@@ -107,6 +108,8 @@ export default function Home() {
   const pricingRef = useRef<HTMLElement | null>(null);
   const contactRef = useRef<HTMLElement | null>(null);
   const [activeSection, setActiveSection] = useState<string>("#home");
+  const [featureSectionHeight, setFeatureSectionHeight] = useState<number | null>(null);
+  const [featureTranslate, setFeatureTranslate] = useState(0);
 
   useEffect(() => {
     const root = scrollContainerRef.current;
@@ -208,17 +211,75 @@ export default function Home() {
     [],
   );
 
-  useEffect(() => {
-    featureScrollRef.current?.scrollTo({ left: 0, behavior: "auto" });
-  }, []);
+  const updateFeatureProgress = useCallback(
+    (sectionHeightOverride?: number) => {
+      const root = scrollContainerRef.current;
+      const section = productRef.current;
+      if (!root || !section) return;
+
+      const viewportHeight = root.clientHeight || window.innerHeight;
+      const computedSectionHeight =
+        sectionHeightOverride ?? featureSectionHeight ?? section.offsetHeight ?? viewportHeight;
+
+      if (computedSectionHeight <= viewportHeight) {
+        setFeatureTranslate(0);
+        return;
+      }
+
+      const start = section.offsetTop;
+      const end = start + computedSectionHeight - viewportHeight;
+      const raw = (root.scrollTop - start) / (end - start);
+      const clamped = Math.min(Math.max(raw, 0), 1);
+      const translate = -clamped * featureMaxScrollRef.current;
+      setFeatureTranslate(Number.isFinite(translate) ? translate : 0);
+    },
+    [featureSectionHeight],
+  );
+
+  const recalcFeatureLayout = useCallback(() => {
+    const root = scrollContainerRef.current;
+    const section = productRef.current;
+    const track = featureTrackRef.current;
+    if (!root || !section || !track) return;
+
+    const viewportWidth =
+      track.parentElement?.clientWidth || root.clientWidth || window.innerWidth;
+    const viewportHeight = root.clientHeight || window.innerHeight;
+    const trackWidth = track.scrollWidth;
+    const maxHorizontalScroll = Math.max(trackWidth - viewportWidth, 0);
+
+    featureMaxScrollRef.current = maxHorizontalScroll;
+
+    const nextHeight = viewportHeight + maxHorizontalScroll;
+    setFeatureSectionHeight(nextHeight);
+    updateFeatureProgress(nextHeight);
+  }, [updateFeatureProgress]);
 
   useEffect(() => {
-    if (activeSection !== "#product") return;
-    featureScrollRef.current?.scrollTo({ left: 0, behavior: "auto" });
-  }, [activeSection]);
+    const root = scrollContainerRef.current;
+    if (!root) return;
+
+    recalcFeatureLayout();
+    const handleScroll = () => updateFeatureProgress();
+    const handleResize = () => recalcFeatureLayout();
+
+    root.addEventListener("scroll", handleScroll, { passive: true });
+    window.addEventListener("resize", handleResize);
+
+    const resizeObserver = new ResizeObserver(() => recalcFeatureLayout());
+    if (featureTrackRef.current) {
+      resizeObserver.observe(featureTrackRef.current);
+    }
+
+    return () => {
+      root.removeEventListener("scroll", handleScroll);
+      window.removeEventListener("resize", handleResize);
+      resizeObserver.disconnect();
+    };
+  }, [recalcFeatureLayout, updateFeatureProgress]);
 
   const featureContainerClasses =
-    "mt-2 flex justify-start gap-6 md:gap-8 overflow-x-auto snap-x snap-mandatory px-6 md:px-12 pb-2 no-scrollbar scroll-smooth";
+    "mt-2 flex justify-start gap-6 md:gap-8 px-6 md:px-12 pb-2 will-change-transform";
 
   return (
     <>
@@ -230,10 +291,10 @@ export default function Home() {
         <section
           id="home"
           ref={heroRef}
-        className="relative h-screen w-full bg-white bg-[url('https://raw.githubusercontent.com/prebuiltui/prebuiltui/main/assets/hero/gridBackground.png')] bg-no-repeat bg-cover bg-center bg-blend-lighten text-sm text-slate-900 overflow-hidden md:snap-start md:snap-always"
-      >
-        <div className="absolute inset-0 bg-white/70" aria-hidden="true" />
-        <div className="hero-dots" aria-hidden="true" />
+          className="relative h-screen w-full bg-white bg-[url('https://raw.githubusercontent.com/prebuiltui/prebuiltui/main/assets/hero/gridBackground.png')] bg-no-repeat bg-cover bg-center bg-blend-lighten text-sm text-slate-900 overflow-hidden md:snap-start md:snap-always"
+        >
+          <div className="absolute inset-0 bg-white/70" aria-hidden="true" />
+          <div className="hero-dots" aria-hidden="true" />
 
           <div className="relative z-10 flex flex-col h-full pb-28 pt-28 md:pt-32 md:pb-32">
             <div className="flex-1 flex flex-col items-center justify-center px-4 text-center gap-6">
@@ -303,116 +364,125 @@ export default function Home() {
         <section
           id="product"
           ref={productRef}
-          className="relative z-10 w-full min-h-screen px-0 md:px-8 lg:px-12 xl:px-16 py-12 md:py-20 bg-white/60 backdrop-blur flex flex-col gap-8 md:gap-12 md:snap-start md:snap-always"
+          style={featureSectionHeight ? { height: `${featureSectionHeight}px` } : undefined}
+          className="relative z-10 w-full min-h-screen bg-white/60 backdrop-blur md:snap-start md:snap-always"
         >
-          <div className="px-6 md:px-12 pt-2 pb-2">
-            <h2 className="text-2xl md:text-3xl font-semibold text-slate-900">
-              Что мы делаем
-            </h2>
-            <p className="text-slate-600 mt-2">
-              Четыре ключевых сценария, которые увеличат посещаемость и LTV вашего
-              заведения.
-            </p>
-          </div>
+          <div className="sticky top-0 h-screen flex flex-col gap-8 md:gap-12 px-0 md:px-8 lg:px-12 xl:px-16 py-12 md:py-20">
+            <div className="px-6 md:px-12 pt-2 pb-2">
+              <h2 className="text-2xl md:text-3xl font-semibold text-slate-900">
+                Что мы делаем
+              </h2>
+              <p className="text-slate-600 mt-2">
+                Четыре ключевых сценария, которые увеличат посещаемость и LTV вашего
+                заведения.
+              </p>
+            </div>
 
-          <div ref={featureScrollRef} className={featureContainerClasses}>
-            {features.map((feature, index) => {
-              const galleryImages = feature.images ?? [];
-              const hasGallery = galleryImages.length > 0;
-              const totalImages = galleryImages.length;
-              const activeGalleryIndex = hasGallery
-                ? ((galleryIndices[index] ?? 0) % totalImages + totalImages) % totalImages
-                : 0;
-              const activeGalleryImage = hasGallery ? galleryImages[activeGalleryIndex] : undefined;
-              const isBookingFeature = feature.title === "Умная бронь столиков";
+            <div className="relative flex-1 w-full overflow-hidden">
+              <div
+                ref={featureTrackRef}
+                className={featureContainerClasses}
+                style={{ transform: `translateX(${featureTranslate}px)` }}
+              >
+                {features.map((feature, index) => {
+                  const galleryImages = feature.images ?? [];
+                  const hasGallery = galleryImages.length > 0;
+                  const totalImages = galleryImages.length;
+                  const activeGalleryIndex = hasGallery
+                    ? ((galleryIndices[index] ?? 0) % totalImages + totalImages) % totalImages
+                    : 0;
+                  const activeGalleryImage = hasGallery ? galleryImages[activeGalleryIndex] : undefined;
+                  const isBookingFeature = feature.title === "Умная бронь столиков";
 
-              return (
-                <div
-                  key={feature.title}
-                  className="min-w-[85vw] md:min-w-[540px] lg:min-w-[620px] flex flex-col md:flex-row items-center md:items-start justify-start gap-6 md:gap-10 px-6 md:px-10 lg:px-12 py-10 md:py-12 rounded-3xl border border-slate-200 bg-white/80 backdrop-blur shadow-sm snap-center md:snap-start"
-                >
-                  <div className="md:w-1/2 space-y-3 md:space-y-4">
-                    <div className="text-sm uppercase tracking-[0.08em] text-slate-500">
-                      0{index + 1}
-                    </div>
-                    <h3 className="text-2xl md:text-3xl font-semibold text-slate-900 leading-tight">
-                      {feature.title}
-                    </h3>
-                    <p className="text-lg md:text-xl text-slate-600 font-medium leading-relaxed">
-                      {feature.impact}
-                    </p>
-                  </div>
-
-                  <div className="md:w-1/2 w-full">
-                    {hasGallery && activeGalleryImage ? (
-                      <div className="flex flex-col items-center gap-4">
-                        <div className="rounded-2xl overflow-hidden bg-white/70 flex items-center justify-center w-full">
-                          <img
-                            src={activeGalleryImage}
-                            alt={`${feature.title} — экран ${activeGalleryIndex + 1}`}
-                            className="block w-full h-auto object-contain max-h-[42vh] sm:max-h-[50vh] md:max-h-[60vh] transition-opacity duration-300"
-                            loading="lazy"
-                          />
+                  return (
+                    <div
+                      key={feature.title}
+                      className="min-w-[85vw] md:min-w-[540px] lg:min-w-[620px] flex flex-col md:flex-row items-center md:items-start justify-start gap-6 md:gap-10 px-6 md:px-10 lg:px-12 py-10 md:py-12 rounded-3xl bg-white/80 backdrop-blur shadow-sm"
+                    >
+                      <div className="md:w-1/2 space-y-3 md:space-y-4">
+                        <div className="text-sm uppercase tracking-[0.08em] text-slate-500">
+                          0{index + 1}
                         </div>
+                        <h3 className="text-2xl md:text-3xl font-semibold text-slate-900 leading-tight">
+                          {feature.title}
+                        </h3>
+                        <p className="text-lg md:text-xl text-slate-600 font-medium leading-relaxed">
+                          {feature.impact}
+                        </p>
+                      </div>
 
-                        {totalImages > 1 && (
-                          <>
-                            <div className="flex items-center justify-center gap-3">
-                              <button
-                                type="button"
-                                onClick={() => changeGalleryImage(index, -1, totalImages)}
-                                className={`pointer-events-auto inline-flex items-center justify-center rounded-full border transition ${
-                                  isBookingFeature
-                                    ? "h-14 w-14 bg-slate-900 text-white border-slate-900 shadow-lg ring-2 ring-emerald-200 hover:bg-slate-800"
-                                    : "h-10 w-10 bg-white/90 text-slate-900 shadow-sm border-slate-200 hover:bg-white"
-                                }`}
-                                aria-label="Предыдущий экран"
-                              >
-                                <ChevronLeft className={isBookingFeature ? "h-6 w-6 sm:h-7 sm:w-7" : "h-5 w-5"} />
-                              </button>
-
-                              <button
-                                type="button"
-                                onClick={() => changeGalleryImage(index, 1, totalImages)}
-                                className={`pointer-events-auto inline-flex items-center justify-center rounded-full border transition ${
-                                  isBookingFeature
-                                    ? "h-14 w-14 bg-slate-900 text-white border-slate-900 shadow-lg ring-2 ring-emerald-200 hover:bg-slate-800"
-                                    : "h-10 w-10 bg-white/90 text-slate-900 shadow-sm border-slate-200 hover:bg-white"
-                                }`}
-                                aria-label="Следующий экран"
-                              >
-                                <ChevronRight className={isBookingFeature ? "h-6 w-6 sm:h-7 sm:w-7" : "h-5 w-5"} />
-                              </button>
+                      <div className="md:w-1/2 w-full">
+                        {hasGallery && activeGalleryImage ? (
+                          <div className="flex flex-col items-center gap-4">
+                            <div className="rounded-2xl overflow-hidden bg-white/70 flex items-center justify-center w-full">
+                              <img
+                                src={activeGalleryImage}
+                                alt={`${feature.title} — экран ${activeGalleryIndex + 1}`}
+                                className="block w-full h-auto object-contain max-h-[42vh] sm:max-h-[50vh] md:max-h-[60vh] transition-opacity duration-300"
+                                loading="lazy"
+                              />
                             </div>
 
-                            <div className="flex items-center justify-center gap-1.5">
-                              {galleryImages.map((_, dotIdx) => (
-                                <span
-                                  key={`${feature.title}-dot-${dotIdx}`}
-                                  className={`h-2 w-2 rounded-full transition-colors ${
-                                    activeGalleryIndex === dotIdx ? "bg-slate-900" : "bg-slate-300"
-                                  }`}
-                                  aria-hidden="true"
-                                />
-                              ))}
-                            </div>
-                          </>
+                            {totalImages > 1 && (
+                              <>
+                                <div className="flex items-center justify-center gap-3">
+                                  <button
+                                    type="button"
+                                    onClick={() => changeGalleryImage(index, -1, totalImages)}
+                                    className={`pointer-events-auto inline-flex items-center justify-center rounded-full border transition ${
+                                      isBookingFeature
+                                        ? "h-14 w-14 bg-slate-900 text-white border-slate-900 shadow-lg ring-2 ring-emerald-200 hover:bg-slate-800"
+                                        : "h-10 w-10 bg-white/90 text-slate-900 shadow-sm border-slate-200 hover:bg-white"
+                                    }`}
+                                    aria-label="Предыдущий экран"
+                                  >
+                                    <ChevronLeft className={isBookingFeature ? "h-6 w-6 sm:h-7 sm:w-7" : "h-5 w-5"} />
+                                  </button>
+
+                                  <button
+                                    type="button"
+                                    onClick={() => changeGalleryImage(index, 1, totalImages)}
+                                    className={`pointer-events-auto inline-flex items-center justify-center rounded-full border transition ${
+                                      isBookingFeature
+                                        ? "h-14 w-14 bg-slate-900 text-white border-slate-900 shadow-lg ring-2 ring-emerald-200 hover:bg-slate-800"
+                                        : "h-10 w-10 bg-white/90 text-slate-900 shadow-sm border-slate-200 hover:bg-white"
+                                    }`}
+                                    aria-label="Следующий экран"
+                                  >
+                                    <ChevronRight className={isBookingFeature ? "h-6 w-6 sm:h-7 sm:w-7" : "h-5 w-5"} />
+                                  </button>
+                                </div>
+
+                                <div className="flex items-center justify-center gap-1.5">
+                                  {galleryImages.map((_, dotIdx) => (
+                                    <span
+                                      key={`${feature.title}-dot-${dotIdx}`}
+                                      className={`h-2 w-2 rounded-full transition-colors ${
+                                        activeGalleryIndex === dotIdx ? "bg-slate-900" : "bg-slate-300"
+                                      }`}
+                                      aria-hidden="true"
+                                    />
+                                  ))}
+                                </div>
+                              </>
+                            )}
+                          </div>
+                        ) : (
+                          <div className="rounded-2xl overflow-hidden flex items-center justify-center">
+                            <img
+                              src={feature.image}
+                              alt={feature.title}
+                              className="block w-full h-auto max-h-[50vh] md:max-h-[55vh] object-contain"
+                              loading="lazy"
+                            />
+                          </div>
                         )}
                       </div>
-                    ) : (
-                      <div className="rounded-2xl overflow-hidden flex items-center justify-center">
-                        <img
-                          src={feature.image}
-                          alt={feature.title}
-                          className="block w-full h-auto max-h-[50vh] md:max-h-[55vh] object-contain"
-                          loading="lazy"
-                        />
-                      </div>
-                    )}
-                  </div>
-                </div>
-              );
-            })}
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
           </div>
         </section>
 
