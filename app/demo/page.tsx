@@ -161,14 +161,14 @@ export default function DemoMailingsPage() {
                 <div
                   className={`max-w-[75%] rounded-2xl px-4 py-3 shadow-sm ${
                     msg.from === "manager"
-                      ? "bg-white border border-slate-200 text-slate-900"
-                      : "bg-emerald-500 text-white"
+                      ? "bg-emerald-500 text-white"
+                      : "bg-white border border-slate-200 text-slate-900"
                   } ${msg.highlight ? "ring-2 ring-amber-400/70" : ""}`}
                 >
                   <p className="text-sm leading-relaxed">{msg.text}</p>
                   <div
                     className={`mt-1 text-xs ${
-                      msg.from === "manager" ? "text-slate-500" : "text-white/80"
+                      msg.from === "manager" ? "text-white/80" : "text-slate-500"
                     }`}
                   >
                     {msg.time}
