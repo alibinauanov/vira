@@ -416,6 +416,7 @@ export default function Home() {
                 ? ((galleryIndices[index] ?? 0) % totalImages + totalImages) % totalImages
                 : 0;
               const activeGalleryImage = hasGallery ? galleryImages[activeGalleryIndex] : undefined;
+              const isBookingFeature = feature.title === "Умная бронь столиков";
 
               return (
                 <div
@@ -455,19 +456,27 @@ export default function Home() {
                             <button
                               type="button"
                               onClick={() => changeGalleryImage(index, -1, totalImages)}
-                              className="pointer-events-auto absolute -left-1 top-1/2 -translate-y-1/2 inline-flex h-10 w-10 items-center justify-center rounded-full bg-white/90 text-slate-900 shadow-sm border border-slate-200 hover:bg-white"
+                              className={`pointer-events-auto absolute top-1/2 -translate-y-1/2 inline-flex items-center justify-center rounded-full border transition ${
+                                isBookingFeature
+                                  ? "h-14 w-14 bg-slate-900 text-white border-slate-900 shadow-lg ring-2 ring-emerald-200 hover:bg-slate-800 left-2 sm:left-3"
+                                  : "h-10 w-10 bg-white/90 text-slate-900 shadow-sm border-slate-200 hover:bg-white -left-1"
+                              }`}
                               aria-label="Предыдущий экран"
                             >
-                              <ChevronLeft className="h-5 w-5" />
+                              <ChevronLeft className={isBookingFeature ? "h-6 w-6 sm:h-7 sm:w-7" : "h-5 w-5"} />
                             </button>
 
                             <button
                               type="button"
                               onClick={() => changeGalleryImage(index, 1, totalImages)}
-                              className="pointer-events-auto absolute -right-1 top-1/2 -translate-y-1/2 inline-flex h-10 w-10 items-center justify-center rounded-full bg-white/90 text-slate-900 shadow-sm border border-slate-200 hover:bg-white"
+                              className={`pointer-events-auto absolute top-1/2 -translate-y-1/2 inline-flex items-center justify-center rounded-full border transition ${
+                                isBookingFeature
+                                  ? "h-14 w-14 bg-slate-900 text-white border-slate-900 shadow-lg ring-2 ring-emerald-200 hover:bg-slate-800 right-2 sm:right-3"
+                                  : "h-10 w-10 bg-white/90 text-slate-900 shadow-sm border-slate-200 hover:bg-white -right-1"
+                              }`}
                               aria-label="Следующий экран"
                             >
-                              <ChevronRight className="h-5 w-5" />
+                              <ChevronRight className={isBookingFeature ? "h-6 w-6 sm:h-7 sm:w-7" : "h-5 w-5"} />
                             </button>
 
                             <div className="pointer-events-none absolute bottom-3 left-0 right-0 flex items-center justify-center gap-1.5">
