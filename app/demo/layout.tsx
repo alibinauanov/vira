@@ -9,7 +9,9 @@ import {
   CalendarCheck2Icon,
   Plug2Icon,
   Repeat2Icon,
+  ReceiptIcon,
   SendIcon,
+  StoreIcon,
   TrendingUpIcon,
 } from "lucide-react";
 
@@ -39,6 +41,7 @@ const navItems = [
   { href: "/demo", label: "Чаты", icon: SendIcon },
   { href: "/demo/knowledge", label: "База знаний", icon: BookOpenIcon },
   { href: "/demo/booking", label: "Бронь", icon: CalendarCheck2Icon },
+  { href: "/demo/order", label: "Заказ", icon: ReceiptIcon },
   { href: "/demo/subscriptions", label: "Подписки", icon: Repeat2Icon },
   { href: "/demo/analytics", label: "Статистика", icon: TrendingUpIcon },
   { href: "/demo/integrations", label: "Интеграции", icon: Plug2Icon },
@@ -86,15 +89,27 @@ export default function DemoLayout({ children }: DemoLayoutProps) {
               </SidebarMenu>
             </SidebarGroupContent>
           </SidebarGroup>
-        </SidebarContent>
+      </SidebarContent>
 
-        <SidebarFooter className="px-2 pb-4">
-          <SidebarMenu>
-            <SidebarMenuItem>
-              <SidebarMenuButton asChild tooltip="Вернуться на сайт">
-                <Link href="/" className="flex items-center gap-2">
-                  <ArrowLeftIcon className="h-4 w-4" />
-                  <span>На главную</span>
+      <SidebarFooter className="px-2 pb-4">
+        <SidebarMenu>
+          <SidebarMenuItem>
+            <SidebarMenuButton
+              asChild
+              tooltip="Страница заведения"
+              isActive={isActive("/demo/venue")}
+            >
+              <Link href="/demo/venue" className="flex items-center gap-2">
+                <StoreIcon className="h-4 w-4" />
+                <span>Страница заведения</span>
+              </Link>
+            </SidebarMenuButton>
+          </SidebarMenuItem>
+          <SidebarMenuItem>
+            <SidebarMenuButton asChild tooltip="Вернуться на сайт">
+              <Link href="/" className="flex items-center gap-2">
+                <ArrowLeftIcon className="h-4 w-4" />
+                <span>На главную</span>
                 </Link>
               </SidebarMenuButton>
             </SidebarMenuItem>

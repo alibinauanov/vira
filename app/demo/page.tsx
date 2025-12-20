@@ -156,7 +156,7 @@ export default function DemoMailingsPage() {
             {messages.map((msg, idx) => (
               <div
                 key={`${msg.time}-${idx}`}
-                className={`flex ${msg.from === "manager" ? "justify-start" : "justify-end"}`}
+                className={`flex ${msg.from === "manager" ? "justify-end" : "justify-start"}`}
               >
                 <div
                   className={`max-w-[75%] rounded-2xl px-4 py-3 shadow-sm ${
