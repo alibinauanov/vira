@@ -41,7 +41,6 @@ const navItems = [
   { href: "/demo", label: "Чаты", icon: SendIcon },
   { href: "/demo/knowledge", label: "База знаний", icon: BookOpenIcon },
   { href: "/demo/booking", label: "Бронь", icon: CalendarCheck2Icon },
-  { href: "/demo/order", label: "Заказ", icon: ReceiptIcon },
   { href: "/demo/subscriptions", label: "Подписки", icon: Repeat2Icon },
   { href: "/demo/analytics", label: "Статистика", icon: TrendingUpIcon },
   { href: "/demo/integrations", label: "Интеграции", icon: Plug2Icon },
