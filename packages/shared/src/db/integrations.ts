@@ -1,9 +1,9 @@
-import { IntegrationStatus, IntegrationType } from "@prisma/client";
+import { IntegrationStatus, IntegrationType, Prisma } from "@prisma/client";
 
 import { prisma } from "./client";
 import { ensureSchema } from "./schema";
 
-export type IntegrationConfig = Record<string, unknown>;
+export type IntegrationConfig = Prisma.InputJsonObject;
 
 export async function getIntegrations(restaurantId: number) {
   await ensureSchema();

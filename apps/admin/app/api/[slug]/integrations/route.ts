@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { IntegrationType } from "@prisma/client";
 
 import { jsonError, resolveSlug } from "@vira/shared/api/utils";
+import type { IntegrationConfig } from "@vira/shared/db/integrations";
 import { getIntegrations, upsertIntegration } from "@vira/shared/db/integrations";
 import { requireAdminRestaurant } from "@/app/api/utils";
 
@@ -50,7 +51,10 @@ export async function PUT(
     return jsonError("Некорректный JSON.", 400);
   }
 
-  const payload = body as { type?: IntegrationType; config?: Record<string, unknown> };
+  const payload = body as {
+    type?: IntegrationType;
+    config?: IntegrationConfig;
+  };
   if (!payload.type || !Object.values(IntegrationType).includes(payload.type)) {
     return jsonError("Укажите тип интеграции.", 400);
   }

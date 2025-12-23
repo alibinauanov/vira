@@ -8,7 +8,7 @@ import { requireAdminRestaurant } from "@/app/api/utils";
 import { syncClerkRestaurantMetadata } from "@/lib/clerk-metadata";
 
 export async function GET(
-  _request: NextRequest,
+  request: NextRequest,
   { params }: { params: { slug?: string } | Promise<{ slug?: string }> },
 ) {
   let slug: string;
@@ -57,7 +57,7 @@ export async function PUT(
     );
   }
 
-  const { error, restaurant } = await requireAdminRestaurant(slug, request);
+  const { error, restaurant, user } = await requireAdminRestaurant(slug, request);
   if (error) return error;
 
   let body: unknown;

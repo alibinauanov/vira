@@ -1,3 +1,5 @@
+import { Prisma } from "@prisma/client";
+
 import { prisma } from "./client";
 import { ensureSchema } from "./schema";
 
@@ -12,22 +14,23 @@ export async function upsertRestaurantInfo(
   restaurantId: number,
   payload: {
     address?: string | null;
-    workSchedule?: unknown;
+    workSchedule?: Prisma.InputJsonValue | null;
     about?: string | null;
   },
 ) {
   await ensureSchema();
+  const workSchedule = payload.workSchedule ?? Prisma.DbNull;
   return prisma.restaurantInfo.upsert({
     where: { restaurantId },
     create: {
       restaurantId,
       address: payload.address?.trim() || null,
-      workSchedule: payload.workSchedule ?? null,
+      workSchedule,
       about: payload.about?.trim() || null,
     },
     update: {
       address: payload.address?.trim() || null,
-      workSchedule: payload.workSchedule ?? null,
+      workSchedule,
       about: payload.about?.trim() || null,
     },
   });

@@ -1,3 +1,4 @@
+import type { Prisma } from "@prisma/client";
 import { NextRequest, NextResponse } from "next/server";
 
 import { jsonError, resolveSlug } from "@vira/shared/api/utils";
@@ -54,7 +55,7 @@ export async function PUT(
 
   const payload = body as {
     address?: string | null;
-    workSchedule?: unknown;
+    workSchedule?: Prisma.InputJsonValue | null;
     about?: string | null;
   };
 

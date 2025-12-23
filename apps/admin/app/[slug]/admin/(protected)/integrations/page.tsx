@@ -2,6 +2,13 @@ import { getIntegrations } from "@vira/shared/db/integrations";
 import { requireRestaurantContext } from "@/lib/tenant";
 import { IntegrationsClient } from "./IntegrationsClient";
 
+const toConfig = (value: unknown): Record<string, unknown> | null => {
+  if (!value || typeof value !== "object" || Array.isArray(value)) {
+    return null;
+  }
+  return value as Record<string, unknown>;
+};
+
 export default async function IntegrationsPage({
   params,
 }: {
@@ -17,7 +24,7 @@ export default async function IntegrationsPage({
     id: integration.id,
     type: integration.type,
     status: integration.status,
-    config: integration.config ?? null,
+    config: toConfig(integration.config),
   }));
 
   return (

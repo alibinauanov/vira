@@ -2,6 +2,8 @@ import { NextRequest, NextResponse } from "next/server";
 
 import { jsonError, resolveSlug } from "@vira/shared/api/utils";
 import {
+  ClientPageButton,
+  ClientPageTheme,
   defaultClientButtons,
   defaultClientTheme,
   getClientPageConfig,
@@ -89,8 +91,8 @@ export async function PUT(
   }
 
   const payload = body as {
-    theme?: Record<string, unknown> | null;
-    buttons?: Record<string, unknown>[] | null;
+    theme?: ClientPageTheme | null;
+    buttons?: ClientPageButton[] | null;
   };
 
   const theme = payload.theme ?? {};
