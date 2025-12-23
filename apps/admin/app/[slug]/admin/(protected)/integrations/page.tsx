@@ -1,7 +1,14 @@
+import type { IntegrationStatus, IntegrationType } from "@prisma/client";
 import { getIntegrations } from "@vira/shared/db/integrations";
 import { requireRestaurantContext } from "@/lib/tenant";
 import { IntegrationsClient } from "./IntegrationsClient";
-import type { Integration } from "@prisma/client";
+
+type IntegrationRow = {
+  id: number;
+  type: IntegrationType;
+  status: IntegrationStatus;
+  config: unknown;
+};
 
 const toConfig = (value: unknown): Record<string, unknown> | null => {
   if (!value || typeof value !== "object" || Array.isArray(value)) {
@@ -20,8 +27,8 @@ export default async function IntegrationsPage({
     slug,
     `/${slug}/admin/integrations`,
   );
-  const integrations = await getIntegrations(restaurant.id);
-  const safeIntegrations = integrations.map((integration: Integration) => ({
+  const integrations = (await getIntegrations(restaurant.id)) as IntegrationRow[];
+  const safeIntegrations = integrations.map((integration) => ({
     id: integration.id,
     type: integration.type,
     status: integration.status,
