@@ -1,0 +1,238 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
+}
+
+enum ReservationStatus {
+  NEW
+  CONFIRMED
+  CANCELLED
+}
+
+enum RestaurantMemberRole {
+  OWNER
+  ADMIN
+  STAFF
+}
+
+enum MediaAssetKind {
+  LOGO
+  MENU_ITEM_IMAGE
+  BACKGROUND_IMAGE
+  OTHER
+}
+
+enum StorageProvider {
+  LOCAL
+  S3
+  R2
+  GCS
+  CLOUDINARY
+}
+
+enum IntegrationType {
+  POS_IIKO
+  POS_RKEEPER
+  WHATSAPP
+  KASPI
+}
+
+enum IntegrationStatus {
+  DISCONNECTED
+  CONFIGURED
+  ACTIVE
+}
+
+model Reservation {
+  id           Int               @id @default(autoincrement())
+  restaurantId Int?
+  businessSlug String
+  tableLabel   String?
+  tableSeats   Int?
+  startAt      DateTime
+  endAt        DateTime
+  partySize    Int
+  name         String
+  phone        String
+  comment      String?
+  status       ReservationStatus @default(NEW)
+  createdAt    DateTime          @default(now())
+
+  restaurant Restaurant? @relation(fields: [restaurantId], references: [id])
+
+  @@index([restaurantId])
+  @@index([businessSlug])
+  @@index([businessSlug, startAt])
+  @@index([startAt])
+}
+
+model Restaurant {
+  id          Int       @id @default(autoincrement())
+  slug        String    @unique
+  name        String
+  phone       String?
+  logoAssetId Int?     @unique
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  logoAsset        MediaAsset?         @relation("RestaurantLogo", fields: [logoAssetId], references: [id])
+  members          RestaurantMember[]
+  reservations     Reservation[]
+  floorPlans       FloorPlan[]
+  tables           Table[]
+  restaurantInfo   RestaurantInfo?
+  menuCategories   MenuCategory[]
+  menuItems        MenuItem[]
+  clientPageConfig ClientPageConfig?
+  integrations     Integration[]
+  mediaAssets      MediaAsset[]        @relation("RestaurantMediaAssets")
+}
+
+model RestaurantMember {
+  id           Int                 @id @default(autoincrement())
+  restaurantId Int
+  clerkUserId  String
+  role         RestaurantMemberRole @default(OWNER)
+  createdAt    DateTime            @default(now())
+
+  restaurant Restaurant @relation(fields: [restaurantId], references: [id])
+
+  @@unique([clerkUserId, restaurantId])
+  @@index([clerkUserId])
+}
+
+model FloorPlan {
+  id           Int      @id @default(autoincrement())
+  restaurantId Int
+  name         String   @default("Default")
+  isActive     Boolean  @default(true)
+  canvasWidth  Int?
+  canvasHeight Int?
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  restaurant Restaurant @relation(fields: [restaurantId], references: [id])
+  tables     Table[]
+
+  @@index([restaurantId])
+}
+
+model Table {
+  id           Int      @id @default(autoincrement())
+  restaurantId Int
+  floorPlanId  Int
+  number       String
+  label        String?
+  seats        Int      @default(2)
+  x            Int
+  y            Int
+  width        Int
+  height       Int
+  rotation     Int?
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  restaurant Restaurant @relation(fields: [restaurantId], references: [id])
+  floorPlan  FloorPlan  @relation(fields: [floorPlanId], references: [id])
+
+  @@unique([restaurantId, floorPlanId, number])
+  @@index([restaurantId])
+}
+
+model RestaurantInfo {
+  restaurantId Int      @id
+  address      String?
+  workSchedule Json?
+  about        String?
+  updatedAt    DateTime @updatedAt
+
+  restaurant Restaurant @relation(fields: [restaurantId], references: [id])
+}
+
+model MenuCategory {
+  id           Int      @id @default(autoincrement())
+  restaurantId Int
+  name         String
+  sortOrder    Int      @default(0)
+  isActive     Boolean  @default(true)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  restaurant Restaurant @relation(fields: [restaurantId], references: [id])
+  items      MenuItem[]
+
+  @@index([restaurantId])
+}
+
+model MenuItem {
+  id           Int      @id @default(autoincrement())
+  restaurantId Int
+  categoryId   Int
+  name         String
+  description  String?
+  price        Decimal
+  imageAssetId Int?
+  sortOrder    Int      @default(0)
+  isAvailable  Boolean  @default(true)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  restaurant Restaurant @relation(fields: [restaurantId], references: [id])
+  category   MenuCategory @relation(fields: [categoryId], references: [id])
+  imageAsset MediaAsset? @relation(fields: [imageAssetId], references: [id])
+
+  @@index([restaurantId])
+}
+
+model ClientPageConfig {
+  restaurantId Int      @id
+  version      Int      @default(1)
+  theme        Json?
+  buttons      Json?
+  updatedAt    DateTime @updatedAt
+
+  restaurant Restaurant @relation(fields: [restaurantId], references: [id])
+}
+
+model Integration {
+  id           Int              @id @default(autoincrement())
+  restaurantId Int
+  type         IntegrationType
+  status       IntegrationStatus @default(DISCONNECTED)
+  config       Json?
+  createdAt    DateTime         @default(now())
+  updatedAt    DateTime         @updatedAt
+
+  restaurant Restaurant @relation(fields: [restaurantId], references: [id])
+
+  @@unique([restaurantId, type])
+  @@index([restaurantId])
+}
+
+model MediaAsset {
+  id                    Int             @id @default(autoincrement())
+  restaurantId          Int
+  kind                  MediaAssetKind
+  originalFilename      String
+  mimeType              String
+  sizeBytes             Int
+  width                 Int?
+  height                Int?
+  storageProvider       StorageProvider
+  objectKey             String
+  publicUrl             String?
+  checksum              String?
+  createdByClerkUserId  String?
+  createdAt             DateTime @default(now())
+
+  restaurant        Restaurant  @relation("RestaurantMediaAssets", fields: [restaurantId], references: [id])
+  logoForRestaurant Restaurant? @relation("RestaurantLogo")
+  menuItems         MenuItem[]
+
+  @@index([restaurantId])
+}

@@ -14,15 +14,19 @@
 /coverage
 
 # next.js
-/.next/
+**/.next/
 /out/
+/apps/*/out/
 
 # production
 /build
 
 # misc
 .DS_Store
+.cache
 *.pem
+packages/shared/prisma/dev.db
+storage/uploads
 
 # debug
 npm-debug.log*
@@ -38,4 +42,4 @@ yarn-error.log*
 
 # typescript
 *.tsbuildinfo
-next-env.d.ts
+**/next-env.d.ts

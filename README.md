@@ -1,36 +1,71 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Vira
 
-## Getting Started
+Vira is a monorepo for the restaurant SaaS:
 
-First, run the development server:
+- Taplink client page: `apps/taplink`
+- Admin panel: `apps/admin`
+- Shared DB + API helpers: `packages/shared`
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+## Prerequisites
+
+- Node.js 20+
+- PostgreSQL
+
+## Environment variables
+
+Create `.env` in the repo root:
+
+```
+DATABASE_URL=postgresql://...
+DIRECT_URL=postgresql://...
+
+NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY=pk_...
+CLERK_SECRET_KEY=sk_...
+
+# Optional local file storage path (defaults to ./storage/uploads)
+MEDIA_UPLOAD_DIR=/absolute/path/to/uploads
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Clerk authentication is configured in the Clerk dashboard. Set the instance to email + password only (disable phone numbers) so sign-up and sign-in never ask for a phone. On first admin sign-in, the app links the Clerk user to Supabase data by creating a `restaurant_members` row and storing `restaurantId`/`restaurantSlug` in Clerk private metadata.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## Install
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+```
+npm install
+```
 
-## Learn More
+## Database setup
 
-To learn more about Next.js, take a look at the following resources:
+Prisma schema lives in `packages/shared/prisma/schema.prisma`.
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+```
+cd packages/shared
+npx prisma generate
+npx prisma migrate dev --name multi-tenant
+cd ../..
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+# Backfill existing reservations with restaurant_id
+npm run db:backfill-reservations
+```
 
-## Deploy on Vercel
+## Development
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+```
+# Taplink client page
+npm run dev:taplink
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+# Admin panel
+npm run dev:admin
+```
+
+## Media uploads
+
+Uploads are stored on disk (local) and served via `/api/media/...` in both apps. The default directory is `storage/uploads` at the repo root. Override with `MEDIA_UPLOAD_DIR`.
+
+## Smoke tests
+
+1. Open `http://localhost:3000/{slug}` (taplink) and create a booking.
+2. Sign in to Clerk and open `http://localhost:3001/{slug}/admin` to see bookings.
+3. In admin: configure seating map, update menu items, and upload images.
+4. Customize client page buttons/background and confirm changes appear on taplink home.
+5. Configure integrations and verify ORDER/WHATSAPP/KASPI buttons behave as placeholders.

@@ -1,0 +1,19 @@
+{
+  "name": "@vira/shared",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "main": "src/index.ts",
+  "exports": {
+    ".": "./src/index.ts",
+    "./types": "./src/types.ts",
+    "./db/*": "./src/db/*.ts",
+    "./api/*": "./src/api/*.ts",
+    "./storage/*": "./src/storage/*.ts"
+  },
+  "dependencies": {
+    "@prisma/client": "^6.4.1",
+    "date-fns": "^4.1.0",
+    "zod": "^3.23.8"
+  }
+}
