@@ -1,6 +1,7 @@
 import { getIntegrations } from "@vira/shared/db/integrations";
 import { requireRestaurantContext } from "@/lib/tenant";
 import { IntegrationsClient } from "./IntegrationsClient";
+import type { Integration } from "@prisma/client";
 
 const toConfig = (value: unknown): Record<string, unknown> | null => {
   if (!value || typeof value !== "object" || Array.isArray(value)) {
@@ -20,7 +21,7 @@ export default async function IntegrationsPage({
     `/${slug}/admin/integrations`,
   );
   const integrations = await getIntegrations(restaurant.id);
-  const safeIntegrations = integrations.map((integration) => ({
+  const safeIntegrations = integrations.map((integration: Integration) => ({
     id: integration.id,
     type: integration.type,
     status: integration.status,
