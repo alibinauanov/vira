@@ -4,6 +4,7 @@ import { requireRestaurantContext } from "@/lib/tenant";
 import { KnowledgeClient } from "./KnowledgeClient";
 
 type MenuCategory = Awaited<ReturnType<typeof listMenuCategories>>[number];
+type MenuItem = MenuCategory["items"][number];
 
 export default async function KnowledgePage({
   params,
@@ -32,7 +33,7 @@ export default async function KnowledgePage({
     name: category.name,
     sortOrder: category.sortOrder,
     isActive: category.isActive,
-    items: category.items.map((item) => ({
+    items: category.items.map((item: MenuItem) => ({
       id: item.id,
       categoryId: item.categoryId,
       name: item.name,
