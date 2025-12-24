@@ -3,6 +3,8 @@ import { getRestaurantInfo } from "@vira/shared/db/restaurant-info";
 import { requireRestaurantContext } from "@/lib/tenant";
 import { KnowledgeClient } from "./KnowledgeClient";
 
+type MenuCategory = Awaited<ReturnType<typeof listMenuCategories>>[number];
+
 export default async function KnowledgePage({
   params,
 }: {
@@ -25,7 +27,7 @@ export default async function KnowledgePage({
         about: info.about ?? null,
       }
     : null;
-  const safeCategories = categories.map((category) => ({
+  const safeCategories = categories.map((category: MenuCategory) => ({
     id: category.id,
     name: category.name,
     sortOrder: category.sortOrder,
