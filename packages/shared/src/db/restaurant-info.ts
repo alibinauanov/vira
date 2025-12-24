@@ -3,8 +3,9 @@ import { Prisma } from "@prisma/client";
 import { prisma } from "./client";
 import { ensureSchema } from "./schema";
 
-// Re-export Prisma namespace for use in other packages
+// Re-export Prisma types for use in other packages
 export type { Prisma };
+export type InputJsonValue = Prisma.InputJsonValue;
 
 export async function getRestaurantInfo(restaurantId: number) {
   await ensureSchema();

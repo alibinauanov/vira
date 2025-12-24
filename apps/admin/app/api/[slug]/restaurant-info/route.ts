@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import type { Prisma } from "@vira/shared/db/restaurant-info";
+import type { InputJsonValue } from "@vira/shared/db/restaurant-info";
 
 import { jsonError, resolveSlug } from "@vira/shared/api/utils";
 import {
@@ -55,7 +55,7 @@ export async function PUT(
 
   const payload = body as {
     address?: string | null;
-    workSchedule?: Prisma.InputJsonValue | null;
+    workSchedule?: InputJsonValue | null;
     about?: string | null;
   };
 
