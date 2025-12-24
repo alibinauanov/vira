@@ -4,12 +4,11 @@
   "private": true,
   "scripts": {
     "dev": "next dev",
-    "prebuild": "cd ../../packages/shared && prisma generate --schema=./prisma/schema.prisma",
     "build": "next build",
     "start": "next start"
   },
   "dependencies": {
-    "@clerk/nextjs": "^6.21.0",
+    "@clerk/nextjs": "^6.36.5",
     "@vira/shared": "file:../../packages/shared",
     "clsx": "^2.1.1",
     "date-fns": "^4.1.0",
