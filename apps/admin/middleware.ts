@@ -3,7 +3,9 @@ import { clerkMiddleware } from "@clerk/nextjs/server";
 export default clerkMiddleware();
 
 export const config = {
+  runtime: "nodejs", // Switch from 'edge' (default) to 'nodejs'
   matcher: [
+    // Skip Next.js internals, static files, and API routes (API routes handle auth themselves)
     "/((?!_next|[^?]*\\.(?:html?|css|js(?!on)|jpe?g|webp|png|gif|svg|ttf|woff2?|ico|csv|docx?|xlsx?|zip|webmanifest)|api).*)",
   ],
 };
