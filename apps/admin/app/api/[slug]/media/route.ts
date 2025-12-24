@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { MediaAssetKind, StorageProvider } from "@prisma/client";
+import { MediaAssetKind, StorageProvider } from "@vira/shared/db/media";
 
 import { jsonError, resolveSlug } from "@vira/shared/api/utils";
 import { createMediaAsset, buildPublicAssetUrl } from "@vira/shared/db/media";

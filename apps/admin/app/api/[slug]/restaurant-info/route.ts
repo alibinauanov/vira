@@ -1,5 +1,5 @@
-import type { Prisma } from "@prisma/client";
 import { NextRequest, NextResponse } from "next/server";
+import type { Prisma } from "@vira/shared/db/restaurant-info";
 
 import { jsonError, resolveSlug } from "@vira/shared/api/utils";
 import {

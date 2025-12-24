@@ -3,6 +3,9 @@ import { MediaAssetKind, StorageProvider } from "@prisma/client";
 import { prisma } from "./client";
 import { ensureSchema } from "./schema";
 
+// Re-export Prisma enums for use in other packages
+export { MediaAssetKind, StorageProvider };
+
 export async function createMediaAsset(payload: {
   restaurantId: number;
   kind: MediaAssetKind;

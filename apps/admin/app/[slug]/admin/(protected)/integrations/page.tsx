@@ -1,4 +1,4 @@
-import type { IntegrationStatus, IntegrationType } from "@prisma/client";
+import type { IntegrationStatus, IntegrationType } from "@vira/shared/db/integrations";
 import { getIntegrations } from "@vira/shared/db/integrations";
 import { requireRestaurantContext } from "@/lib/tenant";
 import { IntegrationsClient } from "./IntegrationsClient";

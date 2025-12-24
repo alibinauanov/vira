@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { IntegrationType } from "@prisma/client";
+import { IntegrationType } from "@vira/shared/db/integrations";
 
 import { jsonError, resolveSlug } from "@vira/shared/api/utils";
 import type { IntegrationConfig } from "@vira/shared/db/integrations";

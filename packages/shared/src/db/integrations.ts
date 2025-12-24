@@ -3,6 +3,9 @@ import { IntegrationStatus, IntegrationType, Prisma } from "@prisma/client";
 import { prisma } from "./client";
 import { ensureSchema } from "./schema";
 
+// Re-export Prisma enums for use in other packages
+export { IntegrationStatus, IntegrationType };
+
 export type IntegrationConfig = Prisma.InputJsonObject;
 
 export async function getIntegrations(restaurantId: number) {
