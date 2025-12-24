@@ -2,6 +2,9 @@ import { ensureActiveFloorPlan } from "@vira/shared/db/floor-plans";
 import { requireRestaurantContext } from "@/lib/tenant";
 import { SeatingMapClient } from "./SeatingMapClient";
 
+type FloorPlan = Awaited<ReturnType<typeof ensureActiveFloorPlan>>;
+type Table = NonNullable<FloorPlan>["tables"][number];
+
 export default async function TablesPage({
   params,
 }: {
@@ -22,7 +25,7 @@ export default async function TablesPage({
         name: plan.name,
         canvasWidth: plan.canvasWidth ?? 800,
         canvasHeight: plan.canvasHeight ?? 480,
-        tables: plan.tables.map((table) => ({
+        tables: plan.tables.map((table: Table) => ({
           id: table.id,
           number: table.number,
           label: table.label,

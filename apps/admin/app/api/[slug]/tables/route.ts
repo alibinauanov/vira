@@ -72,21 +72,23 @@ export async function PUT(
     return jsonError("Некорректный JSON.", 400);
   }
 
+  type TableInput = {
+    id?: number;
+    number?: string;
+    label?: string | null;
+    seats?: number;
+    x?: number;
+    y?: number;
+    width?: number;
+    height?: number;
+    rotation?: number | null;
+  };
+
   const payload = body as {
     name?: string;
     canvasWidth?: number;
     canvasHeight?: number;
-    tables?: Array<{
-      id?: number;
-      number?: string;
-      label?: string | null;
-      seats?: number;
-      x?: number;
-      y?: number;
-      width?: number;
-      height?: number;
-      rotation?: number | null;
-    }>;
+    tables?: TableInput[];
   };
 
   if (!Array.isArray(payload.tables)) {
@@ -115,7 +117,7 @@ export async function PUT(
       name: payload.name,
       canvasWidth: payload.canvasWidth,
       canvasHeight: payload.canvasHeight,
-      tables: payload.tables.map((table) => ({
+      tables: payload.tables.map((table: TableInput) => ({
         id: table.id,
         number: table.number ?? "",
         label: table.label ?? null,
