@@ -48,11 +48,13 @@ export async function saveFloorPlan(
 ) {
   await ensureSchema();
 
-  const normalizedTables = payload.tables.map((table) => ({
+  type TableInput = FloorPlanPayload["tables"][number];
+  const normalizedTables = payload.tables.map((table: TableInput) => ({
     ...table,
     number: table.number.trim(),
   }));
-  const numbers = normalizedTables.map((table) => table.number);
+  type NormalizedTable = (typeof normalizedTables)[number];
+  const numbers = normalizedTables.map((table: NormalizedTable) => table.number);
   const unique = new Set(numbers);
   if (unique.size !== numbers.length) {
     throw new Error("Нельзя использовать одинаковые номера столов.");
@@ -83,12 +85,13 @@ export async function saveFloorPlan(
   const existingTables = await prisma.table.findMany({
     where: { floorPlanId: activePlan.id, restaurantId },
   });
+  type ExistingTable = (typeof existingTables)[number];
   const incomingIds = normalizedTables
-    .map((table) => table.id)
+    .map((table: NormalizedTable) => table.id)
     .filter((id): id is number => typeof id === "number");
   const toDelete = existingTables
-    .filter((table) => !incomingIds.includes(table.id))
-    .map((table) => table.id);
+    .filter((table: ExistingTable) => !incomingIds.includes(table.id))
+    .map((table: ExistingTable) => table.id);
   if (toDelete.length > 0) {
     await prisma.table.deleteMany({ where: { id: { in: toDelete } } });
   }
