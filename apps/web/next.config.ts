@@ -6,10 +6,11 @@ const nextConfig: NextConfig = {
   async rewrites() {
     return [
       {
-        // Rewrite paths that have multiple segments (not restaurant slugs)
-        // Exclude: _next, files with extensions, api, demo, statistics, and single-segment paths
-        // This allows /[slug] routes to work while still serving SPA for other paths
-        source: "/((?!_next/|.*\\..*|api/|demo/|statistics/)[^/]+/[^/]+.*)",
+        // Rewrite paths with 3+ segments (not restaurant routes which are 1-2 segments)
+        // Exclude: _next, files with extensions, api, demo, statistics
+        // Restaurant routes: /[slug] (1 segment) and /[slug]/booking, /[slug]/menu, /[slug]/whatsapp (2 segments)
+        // This allows restaurant routes to work while still serving SPA for other deep paths
+        source: "/((?!_next/|.*\\..*|api/|demo/|statistics/)[^/]+/[^/]+/[^/]+.*)",
         destination: "/",
       },
     ];
