@@ -83,24 +83,27 @@ export function ClientPageActions({ slug, buttons, integrations }: Props) {
     return null;
   }
 
+  // Filter out buttons that shouldn't be shown
+  const visibleButtons = sorted.filter((button) => {
+    if (button.type === "WHATSAPP" && !phoneDigits) return false;
+    if (button.type === "KASPI" && !integrations.kaspiUrl) return false;
+    return true;
+  });
+
   return (
     <div className="flex flex-col gap-3">
-      <div className="flex flex-wrap gap-3">
-        {sorted.map((button) => {
-          if (button.type === "WHATSAPP" && !phoneDigits) return null;
-          if (button.type === "KASPI" && !integrations.kaspiUrl) return null;
-          return (
-            <Button
-              key={button.id}
-              type="button"
-              onClick={() => handleClick(button)}
-              className="border-none text-white"
-              style={{ backgroundColor: button.color }}
-            >
-              {button.text}
-            </Button>
-          );
-        })}
+      <div className="flex flex-col gap-3 w-full">
+        {visibleButtons.map((button) => (
+          <Button
+            key={button.id}
+            type="button"
+            onClick={() => handleClick(button)}
+            className="border-none text-white w-full"
+            style={{ backgroundColor: button.color }}
+          >
+            {button.text}
+          </Button>
+        ))}
       </div>
       {message ? (
         <p className="text-sm font-semibold text-primary">{message}</p>

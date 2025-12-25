@@ -1,6 +1,5 @@
 import { ReactNode } from "react";
 
-import { Button } from "@/components/ui/button";
 import {
   defaultClientTheme,
   getClientPageConfig,
@@ -53,41 +52,6 @@ export default async function RestaurantLayout({
       }}
     >
       <div className="mx-auto max-w-5xl px-4 py-8 sm:px-8">
-        <header className="mb-8 flex flex-wrap items-center justify-between gap-3">
-          <div className="flex items-center gap-3">
-            <div className="flex items-center gap-3 rounded-full bg-white/70 px-3 py-1">
-              <div className="flex size-8 items-center justify-center rounded-full bg-primary/10 text-xs text-primary">
-                {logoUrl ? (
-                  // eslint-disable-next-line @next/next/no-img-element
-                  <img
-                    src={logoUrl}
-                    alt={restaurant.name}
-                    className="h-full w-full rounded-full object-cover"
-                  />
-                ) : (
-                  restaurant.name.slice(0, 1)
-                )}
-              </div>
-              <span className="text-sm font-semibold text-primary">
-                {restaurant.name}
-              </span>
-            </div>
-            <span className="text-sm text-muted-foreground">
-              Taplink · Бронирование · Меню
-            </span>
-          </div>
-          <div className="flex flex-wrap gap-2">
-            <Button variant="ghost" href={`/${slug}/booking`}>
-              Бронь
-            </Button>
-            <Button variant="ghost" href={`/${slug}/menu`}>
-              Меню
-            </Button>
-            <Button variant="ghost" href={`/${slug}/whatsapp`}>
-              WhatsApp
-            </Button>
-          </div>
-        </header>
         {children}
       </div>
     </div>

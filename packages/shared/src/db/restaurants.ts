@@ -38,15 +38,39 @@ export async function getRestaurantBySlug(slug: string) {
 
 export async function ensureRestaurantForSlug(slug: string) {
   const normalized = normalizeSlug(slug);
-  await ensureSchema();
-  return prisma.restaurant.upsert({
-    where: { slug: normalized },
-    update: {},
-    create: {
+  try {
+    await ensureSchema();
+    // Try to find existing restaurant first
+    const existing = await prisma.restaurant.findUnique({
+      where: { slug: normalized },
+    });
+    if (existing) {
+      return existing;
+    }
+    // If not found, create it
+    return prisma.restaurant.create({
+      data: {
+        slug: normalized,
+        name: buildRestaurantName(normalized),
+      },
+    });
+  } catch (error) {
+    // If database connection fails, return a minimal restaurant object
+    // This allows the page to render even if database is unavailable
+    console.warn(
+      `Database connection failed for restaurant slug "${normalized}". Using fallback restaurant object.`,
+      error,
+    );
+    return {
+      id: 0,
       slug: normalized,
       name: buildRestaurantName(normalized),
-    },
-  });
+      phone: null,
+      logoAssetId: null,
+      createdAt: new Date(),
+      updatedAt: new Date(),
+    };
+  }
 }
 
 export async function getRestaurantForUser(clerkUserId: string) {

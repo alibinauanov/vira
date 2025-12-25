@@ -76,7 +76,44 @@ export async function getClientPageConfig(restaurantId: number) {
       updatedAt: new Date(),
     };
   }
-  return config;
+  // Parse JSON fields - Prisma returns them as JsonValue
+  // Handle both string (if stored as text) and object (if stored as JSONB) formats
+  let theme: ClientPageTheme;
+  if (config.theme === null || config.theme === undefined) {
+    theme = defaultClientTheme();
+  } else if (typeof config.theme === "string") {
+    try {
+      theme = JSON.parse(config.theme) as ClientPageTheme;
+    } catch {
+      theme = defaultClientTheme();
+    }
+  } else {
+    theme = config.theme as ClientPageTheme;
+  }
+
+  let buttons: ClientPageButton[];
+  if (config.buttons === null || config.buttons === undefined) {
+    buttons = defaultClientButtons();
+  } else if (typeof config.buttons === "string") {
+    try {
+      const parsed = JSON.parse(config.buttons) as ClientPageButton[];
+      buttons = Array.isArray(parsed) && parsed.length > 0 ? parsed : defaultClientButtons();
+    } catch {
+      buttons = defaultClientButtons();
+    }
+  } else if (Array.isArray(config.buttons)) {
+    buttons = config.buttons.length > 0 ? (config.buttons as ClientPageButton[]) : defaultClientButtons();
+  } else {
+    buttons = defaultClientButtons();
+  }
+  
+  return {
+    restaurantId: config.restaurantId,
+    version: config.version,
+    theme,
+    buttons,
+    updatedAt: config.updatedAt,
+  };
 }
 
 export async function upsertClientPageConfig(

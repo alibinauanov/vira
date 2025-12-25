@@ -21,9 +21,12 @@ export async function requireAdminRestaurant(
   paramsSlug?: string,
   request?: NextRequest,
 ) {
+  // Now that middleware includes API routes, we can use auth() which works everywhere
+  // getAuth(request) is also available as a fallback
   const primaryAuth = await auth();
   const fallbackAuth = request ? getAuth(request) : null;
   const userId = primaryAuth.userId ?? fallbackAuth?.userId ?? null;
+  
   if (!userId) {
     return { error: jsonError("Требуется авторизация.", 401) };
   }
