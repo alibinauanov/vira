@@ -10,9 +10,10 @@ export const dynamic = "force-dynamic";
 export default async function WhatsappPage({
   params,
 }: {
-  params: { slug: string };
+  params: Promise<{ slug: string }>;
 }) {
-  const restaurant = await ensureRestaurantForSlug(params.slug);
+  const { slug } = await params;
+  const restaurant = await ensureRestaurantForSlug(slug);
   const integrations = await getIntegrations(restaurant.id);
   const whatsappIntegration = integrations.find(
     (item) => item.type === "WHATSAPP",
@@ -53,7 +54,7 @@ export default async function WhatsappPage({
           >
             Открыть чат
           </Button>
-          <Button variant="secondary" href={`/${params.slug}/booking`}>
+          <Button variant="secondary" href={`/${slug}/booking`}>
             Забронировать визит
           </Button>
         </CardContent>

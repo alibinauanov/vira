@@ -6,8 +6,9 @@ import { getIntegrations } from "@vira/shared/db/integrations";
 
 export const dynamic = "force-dynamic";
 
-export default async function MenuPage({ params }: { params: { slug: string } }) {
-  const restaurant = await ensureRestaurantForSlug(params.slug);
+export default async function MenuPage({ params }: { params: Promise<{ slug: string }> }) {
+  const { slug } = await params;
+  const restaurant = await ensureRestaurantForSlug(slug);
   const [menuCategories, integrations] = await Promise.all([
     listMenuCategories(restaurant.id),
     getIntegrations(restaurant.id),
@@ -50,7 +51,7 @@ export default async function MenuPage({ params }: { params: { slug: string } })
         </p>
       </div>
       <MenuClient
-        slug={params.slug}
+        slug={slug}
         whatsappPhone={whatsappPhone}
         orderUrl={orderUrl}
         categories={categories}
