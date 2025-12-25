@@ -49,6 +49,7 @@ const prismaClientSingleton = () =>
         url: process.env.DATABASE_URL ?? defaultDatabaseUrl,
       },
     },
+    log: process.env.NODE_ENV === "development" ? ["error", "warn"] : ["error"],
   });
 
 declare global {

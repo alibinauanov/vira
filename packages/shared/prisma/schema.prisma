@@ -3,8 +3,8 @@ generator client {
 }
 
 datasource db {
-  provider = "postgresql"
-  url      = env("DATABASE_URL")
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
   directUrl = env("DIRECT_URL")
 }
 
@@ -66,21 +66,24 @@ model Reservation {
   restaurant Restaurant? @relation(fields: [restaurantId], references: [id])
 
   @@index([restaurantId])
+  @@index([restaurantId, status])
+  @@index([restaurantId, status, startAt])
+  @@index([restaurantId, tableLabel, status])
   @@index([businessSlug])
   @@index([businessSlug, startAt])
   @@index([startAt])
 }
 
 model Restaurant {
-  id          Int       @id @default(autoincrement())
-  slug        String    @unique
+  id          Int      @id @default(autoincrement())
+  slug        String   @unique
   name        String
   phone       String?
   logoAssetId Int?     @unique
-  createdAt   DateTime  @default(now())
-  updatedAt   DateTime  @updatedAt
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
 
-  logoAsset        MediaAsset?         @relation("RestaurantLogo", fields: [logoAssetId], references: [id])
+  logoAsset        MediaAsset?        @relation("RestaurantLogo", fields: [logoAssetId], references: [id])
   members          RestaurantMember[]
   reservations     Reservation[]
   floorPlans       FloorPlan[]
@@ -90,15 +93,15 @@ model Restaurant {
   menuItems        MenuItem[]
   clientPageConfig ClientPageConfig?
   integrations     Integration[]
-  mediaAssets      MediaAsset[]        @relation("RestaurantMediaAssets")
+  mediaAssets      MediaAsset[]       @relation("RestaurantMediaAssets")
 }
 
 model RestaurantMember {
-  id           Int                 @id @default(autoincrement())
+  id           Int                  @id @default(autoincrement())
   restaurantId Int
   clerkUserId  String
   role         RestaurantMemberRole @default(OWNER)
-  createdAt    DateTime            @default(now())
+  createdAt    DateTime             @default(now())
 
   restaurant Restaurant @relation(fields: [restaurantId], references: [id])
 
@@ -120,6 +123,7 @@ model FloorPlan {
   tables     Table[]
 
   @@index([restaurantId])
+  @@index([restaurantId, isActive])
 }
 
 model Table {
@@ -142,6 +146,7 @@ model Table {
 
   @@unique([restaurantId, floorPlanId, number])
   @@index([restaurantId])
+  @@index([restaurantId, floorPlanId])
 }
 
 model RestaurantInfo {
@@ -167,6 +172,7 @@ model MenuCategory {
   items      MenuItem[]
 
   @@index([restaurantId])
+  @@index([restaurantId, isActive])
 }
 
 model MenuItem {
@@ -182,11 +188,14 @@ model MenuItem {
   createdAt    DateTime @default(now())
   updatedAt    DateTime @updatedAt
 
-  restaurant Restaurant @relation(fields: [restaurantId], references: [id])
+  restaurant Restaurant   @relation(fields: [restaurantId], references: [id])
   category   MenuCategory @relation(fields: [categoryId], references: [id])
-  imageAsset MediaAsset? @relation(fields: [imageAssetId], references: [id])
+  imageAsset MediaAsset?  @relation(fields: [imageAssetId], references: [id])
 
   @@index([restaurantId])
+  @@index([restaurantId, isAvailable])
+  @@index([categoryId, isAvailable])
+  @@index([restaurantId, categoryId, isAvailable])
 }
 
 model ClientPageConfig {
@@ -200,13 +209,13 @@ model ClientPageConfig {
 }
 
 model Integration {
-  id           Int              @id @default(autoincrement())
+  id           Int               @id @default(autoincrement())
   restaurantId Int
   type         IntegrationType
   status       IntegrationStatus @default(DISCONNECTED)
   config       Json?
-  createdAt    DateTime         @default(now())
-  updatedAt    DateTime         @updatedAt
+  createdAt    DateTime          @default(now())
+  updatedAt    DateTime          @updatedAt
 
   restaurant Restaurant @relation(fields: [restaurantId], references: [id])
 
@@ -215,24 +224,25 @@ model Integration {
 }
 
 model MediaAsset {
-  id                    Int             @id @default(autoincrement())
-  restaurantId          Int
-  kind                  MediaAssetKind
-  originalFilename      String
-  mimeType              String
-  sizeBytes             Int
-  width                 Int?
-  height                Int?
-  storageProvider       StorageProvider
-  objectKey             String
-  publicUrl             String?
-  checksum              String?
-  createdByClerkUserId  String?
-  createdAt             DateTime @default(now())
+  id                   Int             @id @default(autoincrement())
+  restaurantId         Int
+  kind                 MediaAssetKind
+  originalFilename     String
+  mimeType             String
+  sizeBytes            Int
+  width                Int?
+  height               Int?
+  storageProvider      StorageProvider
+  objectKey            String
+  publicUrl            String?
+  checksum             String?
+  createdByClerkUserId String?
+  createdAt            DateTime        @default(now())
 
   restaurant        Restaurant  @relation("RestaurantMediaAssets", fields: [restaurantId], references: [id])
   logoForRestaurant Restaurant? @relation("RestaurantLogo")
   menuItems         MenuItem[]
 
   @@index([restaurantId])
+  @@index([restaurantId, kind])
 }

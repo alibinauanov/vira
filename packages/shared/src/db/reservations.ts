@@ -122,6 +122,7 @@ const ensureTableAvailability = async (options: {
         { startAt: { gte: options.endAt } },
       ],
     },
+    select: { id: true }, // Only select id for faster query
   });
 
   if (overlapping) {
@@ -137,8 +138,11 @@ export async function listReservations(
   } = {},
 ): Promise<ReservationDTO[]> {
   const normalizedSlug = ensureValidSlug(slug);
-  await ensureBusinessSeed(normalizedSlug);
-  const restaurant = await ensureRestaurantForSlug(normalizedSlug);
+  // Run these in parallel since they don't depend on each other
+  const [_, restaurant] = await Promise.all([
+    ensureBusinessSeed(normalizedSlug),
+    ensureRestaurantForSlug(normalizedSlug),
+  ]);
 
   const reservations = await prisma.reservation.findMany({
     where: buildReservationWhere(
@@ -147,6 +151,22 @@ export async function listReservations(
       options.includeCancelled,
     ),
     orderBy: [{ startAt: "asc" }, { id: "asc" }],
+    // Only select needed fields for better performance
+    select: {
+      id: true,
+      restaurantId: true,
+      businessSlug: true,
+      tableLabel: true,
+      tableSeats: true,
+      startAt: true,
+      endAt: true,
+      partySize: true,
+      name: true,
+      phone: true,
+      comment: true,
+      status: true,
+      createdAt: true,
+    },
   });
 
   return reservations.map(serializeReservation);
@@ -157,8 +177,11 @@ export async function createReservation(
   payload: CreateReservationPayload,
 ): Promise<ReservationDTO> {
   const normalizedSlug = ensureValidSlug(slug);
-  await ensureBusinessSeed(normalizedSlug);
-  const restaurant = await ensureRestaurantForSlug(normalizedSlug);
+  // Run these in parallel since they don't depend on each other
+  const [_, restaurant] = await Promise.all([
+    ensureBusinessSeed(normalizedSlug),
+    ensureRestaurantForSlug(normalizedSlug),
+  ]);
 
   const startAt = new Date(payload.startAt);
   const duration =
@@ -208,8 +231,11 @@ export async function updateReservation(
   payload: UpdateReservationPayload,
 ): Promise<ReservationDTO> {
   const normalizedSlug = ensureValidSlug(slug);
-  await ensureBusinessSeed(normalizedSlug);
-  const restaurant = await ensureRestaurantForSlug(normalizedSlug);
+  // Run these in parallel since they don't depend on each other
+  const [_, restaurant] = await Promise.all([
+    ensureBusinessSeed(normalizedSlug),
+    ensureRestaurantForSlug(normalizedSlug),
+  ]);
 
   const existing = await prisma.reservation.findFirst({
     where: { id, restaurantId: restaurant.id },
@@ -270,8 +296,11 @@ export async function updateReservation(
 
 export async function deleteReservation(slug: string, id: number) {
   const normalizedSlug = ensureValidSlug(slug);
-  await ensureBusinessSeed(normalizedSlug);
-  const restaurant = await ensureRestaurantForSlug(normalizedSlug);
+  // Run these in parallel since they don't depend on each other
+  const [_, restaurant] = await Promise.all([
+    ensureBusinessSeed(normalizedSlug),
+    ensureRestaurantForSlug(normalizedSlug),
+  ]);
 
   const existing = await prisma.reservation.findFirst({
     where: { id, restaurantId: restaurant.id },
@@ -291,8 +320,11 @@ export async function getReservationById(
   id: number,
 ): Promise<ReservationDTO | null> {
   const normalizedSlug = ensureValidSlug(slug);
-  await ensureBusinessSeed(normalizedSlug);
-  const restaurant = await ensureRestaurantForSlug(normalizedSlug);
+  // Run these in parallel since they don't depend on each other
+  const [_, restaurant] = await Promise.all([
+    ensureBusinessSeed(normalizedSlug),
+    ensureRestaurantForSlug(normalizedSlug),
+  ]);
 
   const reservation = await prisma.reservation.findFirst({
     where: { id, restaurantId: restaurant.id },

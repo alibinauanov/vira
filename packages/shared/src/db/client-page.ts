@@ -3,6 +3,7 @@ import { ensureSchema } from "./schema";
 
 export type ClientPageButtonType =
   | "BOOKING"
+  | "MENU"
   | "ORDER"
   | "WHATSAPP"
   | "KASPI"
@@ -39,19 +40,11 @@ export const defaultClientButtons = (): ClientPageButton[] => [
     enabled: true,
   },
   {
-    id: "order",
-    text: "Сделать предзаказ",
+    id: "menu",
+    text: "Меню",
     color: "#0ea5e9",
-    type: "ORDER",
+    type: "MENU",
     order: 2,
-    enabled: true,
-  },
-  {
-    id: "whatsapp",
-    text: "Написать в WhatsApp",
-    color: "#16a34a",
-    type: "WHATSAPP",
-    order: 3,
     enabled: true,
   },
 ];

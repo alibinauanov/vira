@@ -197,5 +197,45 @@ export async function ensureSchema() {
     CREATE INDEX IF NOT EXISTS "Reservation_restaurantId_idx" ON "Reservation"("restaurantId");
   `);
 
+  await prisma.$executeRawUnsafe(`
+    CREATE INDEX IF NOT EXISTS "Reservation_restaurantId_status_idx" ON "Reservation"("restaurantId", "status");
+  `);
+
+  await prisma.$executeRawUnsafe(`
+    CREATE INDEX IF NOT EXISTS "Reservation_restaurantId_status_startAt_idx" ON "Reservation"("restaurantId", "status", "startAt");
+  `);
+
+  await prisma.$executeRawUnsafe(`
+    CREATE INDEX IF NOT EXISTS "Reservation_restaurantId_tableLabel_status_idx" ON "Reservation"("restaurantId", "tableLabel", "status");
+  `);
+
+  await prisma.$executeRawUnsafe(`
+    CREATE INDEX IF NOT EXISTS "FloorPlan_restaurantId_isActive_idx" ON "FloorPlan"("restaurantId", "isActive");
+  `);
+
+  await prisma.$executeRawUnsafe(`
+    CREATE INDEX IF NOT EXISTS "Table_restaurantId_floorPlanId_idx" ON "Table"("restaurantId", "floorPlanId");
+  `);
+
+  await prisma.$executeRawUnsafe(`
+    CREATE INDEX IF NOT EXISTS "MenuCategory_restaurantId_isActive_idx" ON "MenuCategory"("restaurantId", "isActive");
+  `);
+
+  await prisma.$executeRawUnsafe(`
+    CREATE INDEX IF NOT EXISTS "MenuItem_restaurantId_isAvailable_idx" ON "MenuItem"("restaurantId", "isAvailable");
+  `);
+
+  await prisma.$executeRawUnsafe(`
+    CREATE INDEX IF NOT EXISTS "MenuItem_categoryId_isAvailable_idx" ON "MenuItem"("categoryId", "isAvailable");
+  `);
+
+  await prisma.$executeRawUnsafe(`
+    CREATE INDEX IF NOT EXISTS "MenuItem_restaurantId_categoryId_isAvailable_idx" ON "MenuItem"("restaurantId", "categoryId", "isAvailable");
+  `);
+
+  await prisma.$executeRawUnsafe(`
+    CREATE INDEX IF NOT EXISTS "MediaAsset_restaurantId_kind_idx" ON "MediaAsset"("restaurantId", "kind");
+  `);
+
   schemaReady = true;
 }

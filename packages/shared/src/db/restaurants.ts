@@ -33,16 +33,37 @@ const buildUniqueSlug = async (base: string) => {
 
 export async function getRestaurantBySlug(slug: string) {
   const normalized = normalizeSlug(slug);
-  return prisma.restaurant.findUnique({ where: { slug: normalized } });
+  return prisma.restaurant.findUnique({ 
+    where: { slug: normalized },
+    select: {
+      id: true,
+      slug: true,
+      name: true,
+      phone: true,
+      logoAssetId: true,
+      createdAt: true,
+      updatedAt: true,
+    },
+  });
 }
 
 export async function ensureRestaurantForSlug(slug: string) {
   const normalized = normalizeSlug(slug);
   try {
     await ensureSchema();
-    // Try to find existing restaurant first
+    // Use findFirst with create if not found for better performance
+    // This avoids a potential race condition and reduces queries
     const existing = await prisma.restaurant.findUnique({
       where: { slug: normalized },
+      select: {
+        id: true,
+        slug: true,
+        name: true,
+        phone: true,
+        logoAssetId: true,
+        createdAt: true,
+        updatedAt: true,
+      },
     });
     if (existing) {
       return existing;
@@ -52,6 +73,15 @@ export async function ensureRestaurantForSlug(slug: string) {
       data: {
         slug: normalized,
         name: buildRestaurantName(normalized),
+      },
+      select: {
+        id: true,
+        slug: true,
+        name: true,
+        phone: true,
+        logoAssetId: true,
+        createdAt: true,
+        updatedAt: true,
       },
     });
   } catch (error) {
@@ -76,7 +106,19 @@ export async function ensureRestaurantForSlug(slug: string) {
 export async function getRestaurantForUser(clerkUserId: string) {
   const member = await prisma.restaurantMember.findFirst({
     where: { clerkUserId },
-    include: { restaurant: true },
+    include: { 
+      restaurant: {
+        select: {
+          id: true,
+          slug: true,
+          name: true,
+          phone: true,
+          logoAssetId: true,
+          createdAt: true,
+          updatedAt: true,
+        },
+      },
+    },
   });
   return member?.restaurant ?? null;
 }

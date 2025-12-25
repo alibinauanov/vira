@@ -22,7 +22,11 @@ export async function getActiveFloorPlan(restaurantId: number) {
   await ensureSchema();
   return prisma.floorPlan.findFirst({
     where: { restaurantId, isActive: true },
-    include: { tables: true },
+    include: { 
+      tables: {
+        orderBy: [{ number: "asc" }],
+      },
+    },
   });
 }
 
@@ -38,7 +42,11 @@ export async function ensureActiveFloorPlan(restaurantId: number) {
       canvasWidth: 800,
       canvasHeight: 480,
     },
-    include: { tables: true },
+    include: { 
+      tables: {
+        orderBy: [{ number: "asc" }],
+      },
+    },
   });
 }
 
@@ -131,6 +139,10 @@ export async function saveFloorPlan(
 
   return prisma.floorPlan.findUnique({
     where: { id: activePlan.id },
-    include: { tables: true },
+    include: { 
+      tables: {
+        orderBy: [{ number: "asc" }],
+      },
+    },
   });
 }

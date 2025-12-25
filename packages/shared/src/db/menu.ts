@@ -27,10 +27,16 @@ const serializeMenuItem = (item: {
 export async function listMenuCategories(restaurantId: number) {
   await ensureSchema();
   const categories = await prisma.menuCategory.findMany({
-    where: { restaurantId },
+    where: { 
+      restaurantId,
+      isActive: true,
+    },
     orderBy: [{ sortOrder: "asc" }, { id: "asc" }],
     include: {
       items: {
+        where: {
+          isAvailable: true,
+        },
         orderBy: [{ sortOrder: "asc" }, { id: "asc" }],
         include: {
           imageAsset: {
@@ -41,10 +47,13 @@ export async function listMenuCategories(restaurantId: number) {
     },
   });
 
-  return categories.map((category) => ({
-    ...category,
-    items: category.items.map(serializeMenuItem),
-  }));
+  // Filter out categories with no active items
+  return categories
+    .filter((category) => category.items.length > 0)
+    .map((category) => ({
+      ...category,
+      items: category.items.map(serializeMenuItem),
+    }));
 }
 
 export async function createMenuCategory(
