@@ -5,6 +5,12 @@
     "paths": {
       "@/*": [
         "./*"
+      ],
+      "@vira/shared": [
+        "../../packages/shared/src/index.ts"
+      ],
+      "@vira/shared/*": [
+        "../../packages/shared/src/*"
       ]
     },
     "plugins": [

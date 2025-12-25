@@ -6,8 +6,10 @@ const nextConfig: NextConfig = {
   async rewrites() {
     return [
       {
-        // Serve the single-page app for any non-asset path without changing the URL.
-        source: "/((?!_next/|.*\\..*).*)",
+        // Rewrite paths that have multiple segments (not restaurant slugs)
+        // Exclude: _next, files with extensions, api, demo, statistics, and single-segment paths
+        // This allows /[slug] routes to work while still serving SPA for other paths
+        source: "/((?!_next/|.*\\..*|api/|demo/|statistics/)[^/]+/[^/]+.*)",
         destination: "/",
       },
     ];
