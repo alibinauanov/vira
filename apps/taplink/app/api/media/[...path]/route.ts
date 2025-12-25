@@ -14,9 +14,10 @@ const contentTypeFor = (filePath: string) => {
 
 export async function GET(
   _request: NextRequest,
-  { params }: { params: { path?: string[] } },
+  { params }: { params: Promise<{ path?: string[] }> },
 ) {
-  const segments = params.path ?? [];
+  const { path: pathArray } = await params;
+  const segments = pathArray ?? [];
   const objectKey = segments.join("/");
   try {
     const { filePath, buffer } = await readUploadFile(objectKey);
