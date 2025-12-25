@@ -18,23 +18,43 @@ export default async function RestaurantLayout({
   const { slug: rawSlug } = await params;
   const slug = rawSlug || "demo-restaurant";
   const restaurant = await ensureRestaurantForSlug(slug);
-  const restaurantRecord = await prisma.restaurant.findUnique({
-    where: { id: restaurant.id },
-    include: { logoAsset: true },
-  });
-  const config = await getClientPageConfig(restaurant.id);
-  const theme = (config.theme ?? defaultClientTheme()) as Record<string, unknown>;
+  
+  // Combine all queries in parallel for better performance
+  const [restaurantRecord, config] = await Promise.all([
+    restaurant.id > 0
+      ? prisma.restaurant.findUnique({
+          where: { id: restaurant.id },
+          include: { logoAsset: true },
+        })
+      : Promise.resolve(null),
+    restaurant.id > 0 ? getClientPageConfig(restaurant.id) : Promise.resolve(null),
+  ]);
+  
+  const theme = (config?.theme ?? defaultClientTheme()) as Record<string, unknown>;
   const backgroundAssetId = theme.backgroundAssetId as number | undefined;
   const logoOverrideAssetId = theme.logoOverrideAssetId as number | undefined;
 
-  const [backgroundAsset, logoOverrideAsset] = await Promise.all([
-    backgroundAssetId
-      ? prisma.mediaAsset.findUnique({ where: { id: backgroundAssetId } })
-      : null,
-    logoOverrideAssetId
-      ? prisma.mediaAsset.findUnique({ where: { id: logoOverrideAssetId } })
-      : null,
-  ]);
+  // Only fetch media assets if IDs are present
+  const mediaAssetIds = [
+    backgroundAssetId,
+    logoOverrideAssetId,
+  ].filter((id): id is number => typeof id === "number");
+
+  const mediaAssets = mediaAssetIds.length > 0 && restaurant.id > 0
+    ? await prisma.mediaAsset.findMany({
+        where: { 
+          id: { in: mediaAssetIds },
+          restaurantId: restaurant.id,
+        },
+      })
+    : [];
+
+  const backgroundAsset = backgroundAssetId
+    ? mediaAssets.find((a) => a.id === backgroundAssetId) ?? null
+    : null;
+  const logoOverrideAsset = logoOverrideAssetId
+    ? mediaAssets.find((a) => a.id === logoOverrideAssetId) ?? null
+    : null;
 
   const backgroundUrl = resolveAssetUrl(backgroundAsset);
   const logoUrl =

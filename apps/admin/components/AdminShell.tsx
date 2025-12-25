@@ -77,7 +77,7 @@ export function AdminShell({ restaurant, children }: Props) {
             href={safeSlug ? `/${safeSlug}` : "#"}
             className="text-xs font-medium text-primary underline"
           >
-            Открыть таплинк
+            Карточка заведения
           </Link>
         </div>
         <nav className="flex flex-col gap-1">

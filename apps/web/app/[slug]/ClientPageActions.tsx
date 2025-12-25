@@ -39,7 +39,15 @@ export function ClientPageActions({ slug, buttons, integrations }: Props) {
   const [message, setMessage] = useState<string | null>(null);
   const sorted = [...buttons]
     .filter((button) => button.enabled)
-    .sort((a, b) => a.order - b.order);
+    .sort((a, b) => {
+      // Ensure BOOKING and MENU are always first
+      const aPriority = a.type === "BOOKING" ? 0 : a.type === "MENU" ? 1 : 2;
+      const bPriority = b.type === "BOOKING" ? 0 : b.type === "MENU" ? 1 : 2;
+      if (aPriority !== bPriority) {
+        return aPriority - bPriority;
+      }
+      return a.order - b.order;
+    });
 
   const phoneDigits = sanitizePhone(integrations.whatsappPhone);
 

@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 
 type ButtonType =
   | "BOOKING"
+  | "MENU"
   | "ORDER"
   | "WHATSAPP"
   | "KASPI"
@@ -70,6 +71,10 @@ export function ClientPageActions({ slug, buttons, integrations }: Props) {
     }
     if (button.type === "BOOKING") {
       window.location.href = `/${slug}/booking`;
+      return;
+    }
+    if (button.type === "MENU") {
+      window.location.href = `/${slug}/menu`;
       return;
     }
     if (button.type === "EXTERNAL_URL") {

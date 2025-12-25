@@ -8,23 +8,9 @@ import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Select } from "@/components/ui/select";
 import { cn } from "@/lib/utils";
+import type { ClientPageButton, ClientPageButtonType } from "@vira/shared/db/client-page";
 
-type ButtonType =
-  | "BOOKING"
-  | "ORDER"
-  | "WHATSAPP"
-  | "KASPI"
-  | "EXTERNAL_URL";
-
-type ClientButton = {
-  id: string;
-  text: string;
-  color: string;
-  type: ButtonType;
-  url?: string | null;
-  order: number;
-  enabled: boolean;
-};
+type ClientButton = ClientPageButton;
 
 type ThemeConfig = {
   backgroundColor?: string | null;
@@ -59,24 +45,36 @@ export function CustomizerClient({
   const [message, setMessage] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
 
-  const sortedButtons = useMemo(
-    () => [...buttons].sort((a, b) => a.order - b.order),
-    [buttons],
-  );
+  const sortedButtons = useMemo(() => {
+    const sorted = [...buttons].sort((a, b) => {
+      // Ensure BOOKING and MENU are always first
+      const aPriority = a.type === "BOOKING" ? 0 : a.type === "MENU" ? 1 : 2;
+      const bPriority = b.type === "BOOKING" ? 0 : b.type === "MENU" ? 1 : 2;
+      if (aPriority !== bPriority) {
+        return aPriority - bPriority;
+      }
+      return a.order - b.order;
+    });
+    return sorted;
+  }, [buttons]);
 
   const addButton = () => {
-    setButtons((prev) => [
-      ...prev,
-      {
-        id: crypto.randomUUID(),
-        text: "Новая кнопка",
-        color: "#0f172a",
-        type: "BOOKING",
-        url: "",
-        order: prev.length + 1,
-        enabled: true,
-      },
-    ]);
+    setButtons((prev) => {
+      // Find the highest order number
+      const maxOrder = Math.max(...prev.map((b) => b.order), 0);
+      return [
+        ...prev,
+        {
+          id: crypto.randomUUID(),
+          text: "Новая кнопка",
+          color: "#0f172a",
+          type: "EXTERNAL_URL" as ClientPageButtonType,
+          url: "",
+          order: maxOrder + 1,
+          enabled: true,
+        },
+      ];
+    });
   };
 
   const updateButton = (id: string, patch: Partial<ClientButton>) => {
@@ -290,11 +288,12 @@ export function CustomizerClient({
                       value={button.type}
                       onChange={(event) =>
                         updateButton(button.id, {
-                          type: event.target.value as ButtonType,
+                          type: event.target.value as ClientPageButtonType,
                         })
                       }
                     >
                       <option value="BOOKING">Бронь</option>
+                      <option value="MENU">Меню</option>
                       <option value="ORDER">Заказ</option>
                       <option value="WHATSAPP">WhatsApp</option>
                       <option value="KASPI">Kaspi</option>
@@ -309,13 +308,23 @@ export function CustomizerClient({
                     />
                   </div>
                   <div className="mt-3 grid gap-3 sm:grid-cols-[1.4fr_0.6fr_0.6fr]">
-                    <Input
-                      value={button.url ?? ""}
-                      onChange={(event) =>
-                        updateButton(button.id, { url: event.target.value })
-                      }
-                      placeholder="Внешняя ссылка (опционально)"
-                    />
+                    {button.type === "EXTERNAL_URL" ? (
+                      <Input
+                        value={button.url ?? ""}
+                        onChange={(event) =>
+                          updateButton(button.id, { url: event.target.value })
+                        }
+                        placeholder="Внешняя ссылка (обязательно)"
+                      />
+                    ) : (
+                      <div className="text-sm text-muted-foreground flex items-center">
+                        {button.type === "BOOKING" && "Ведет на страницу бронирования"}
+                        {button.type === "MENU" && "Ведет на страницу меню"}
+                        {button.type === "ORDER" && "Ведет на страницу заказа"}
+                        {button.type === "WHATSAPP" && "Ведет в WhatsApp"}
+                        {button.type === "KASPI" && "Ведет в Kaspi"}
+                      </div>
+                    )}
                     <Input
                       type="number"
                       value={button.order}
@@ -324,6 +333,7 @@ export function CustomizerClient({
                           order: Number(event.target.value),
                         })
                       }
+                      placeholder="Порядок"
                     />
                     <Select
                       value={button.enabled ? "on" : "off"}
@@ -337,15 +347,17 @@ export function CustomizerClient({
                       <option value="off">Скрыть</option>
                     </Select>
                   </div>
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={() => removeButton(button.id)}
-                    className="mt-3"
-                  >
-                    <Trash2 className="size-4" />
-                    Удалить
-                  </Button>
+                  {button.type !== "BOOKING" && button.type !== "MENU" && (
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => removeButton(button.id)}
+                      className="mt-3"
+                    >
+                      <Trash2 className="size-4" />
+                      Удалить
+                    </Button>
+                  )}
                 </div>
               ))}
             </CardContent>

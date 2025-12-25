@@ -48,7 +48,7 @@ export default async function RestaurantHome({
         id: string;
         text: string;
         color: string;
-        type: "BOOKING" | "ORDER" | "WHATSAPP" | "KASPI" | "EXTERNAL_URL";
+        type: "BOOKING" | "MENU" | "ORDER" | "WHATSAPP" | "KASPI" | "EXTERNAL_URL";
         url?: string | null;
         order: number;
         enabled: boolean;
@@ -73,14 +73,27 @@ export default async function RestaurantHome({
   const kaspiUrl = (kaspiIntegration?.config as Record<string, unknown> | null)
     ?.url as string | undefined;
 
-  const [backgroundAsset, logoOverrideAsset] = await Promise.all([
-    backgroundAssetId && restaurant.id > 0
-      ? prisma.mediaAsset.findUnique({ where: { id: backgroundAssetId } }).catch(() => null)
-      : null,
-    logoOverrideAssetId && restaurant.id > 0
-      ? prisma.mediaAsset.findUnique({ where: { id: logoOverrideAssetId } }).catch(() => null)
-      : null,
-  ]);
+  // Only fetch media assets if IDs are present - use findMany for better performance
+  const mediaAssetIds = [
+    backgroundAssetId,
+    logoOverrideAssetId,
+  ].filter((id): id is number => typeof id === "number");
+
+  const mediaAssets = mediaAssetIds.length > 0 && restaurant.id > 0
+    ? await prisma.mediaAsset.findMany({
+        where: { 
+          id: { in: mediaAssetIds },
+          restaurantId: restaurant.id,
+        },
+      }).catch(() => [])
+    : [];
+
+  const backgroundAsset = backgroundAssetId
+    ? mediaAssets.find((a) => a.id === backgroundAssetId) ?? null
+    : null;
+  const logoOverrideAsset = logoOverrideAssetId
+    ? mediaAssets.find((a) => a.id === logoOverrideAssetId) ?? null
+    : null;
 
   const backgroundUrl = resolveAssetUrl(backgroundAsset);
   const logoUrl =
