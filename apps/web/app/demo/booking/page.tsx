@@ -191,7 +191,7 @@ export default function DemoBookingPage() {
                   Место {booking.seat} • {booking.time}
                 </p>
               </div>
-              <Badge variant="outline">{booking.status}</Badge>
+              <Badge tone="neutral">{booking.status}</Badge>
             </div>
           ))}
         </div>

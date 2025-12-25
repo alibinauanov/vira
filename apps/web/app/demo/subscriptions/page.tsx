@@ -21,8 +21,8 @@ const subscriptions: Subscription[] = [
 
 function statusBadge(status: Subscription["status"]) {
   if (status === "Активна") return <Badge className="bg-emerald-500 text-white hover:bg-emerald-600">Активна</Badge>;
-  if (status === "Пауза") return <Badge variant="outline">Пауза</Badge>;
-  return <Badge variant="outline" className="text-slate-500 border-slate-200">Отменена</Badge>;
+  if (status === "Пауза") return <Badge tone="neutral">Пауза</Badge>;
+  return <Badge tone="neutral" className="text-slate-500 border-slate-200">Отменена</Badge>;
 }
 
 export default function DemoSubscriptionsPage() {

@@ -70,7 +70,7 @@ export type AnnouncementProps = Omit<ComponentProps<typeof Badge>, 'ref'> & {
 };
 
 function AnnouncementComponent({
-  variant = 'outline',
+  tone = 'neutral',
   styled = false,
   animation = 'fade',
   icon,
@@ -189,7 +189,7 @@ function AnnouncementComponent({
   const badgeContent = (
     <Badge
       className={cn('group relative max-w-full overflow-hidden rounded-full bg-background px-4 py-1.5 font-medium shadow-sm', styled && 'border-foreground/5', className)}
-      variant={variant}
+      tone={tone}
       data-expandable={hasExpandable}
       {...props}
     >

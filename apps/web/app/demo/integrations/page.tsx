@@ -24,7 +24,7 @@ export default function DemoIntegrationsPage() {
             гостей.
           </p>
         </div>
-        <Badge variant="outline" className="border-slate-300 text-slate-700">
+        <Badge tone="neutral" className="border-slate-300 text-slate-700">
           Все подключены
         </Badge>
       </div>

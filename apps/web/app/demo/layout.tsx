@@ -121,7 +121,7 @@ export default function DemoLayout({ children }: DemoLayoutProps) {
         <header className="flex h-16 items-center gap-3 border-b border-slate-200 px-4 md:px-6">
           <SidebarTrigger className="md:hidden" />
           <div className="flex items-center gap-2 group-data-[collapsible=icon]/sidebar:hidden">
-            <Badge variant="outline" className="border-slate-300 text-slate-700">
+            <Badge tone="neutral" className="border-slate-300 text-slate-700">
               Демо
             </Badge>
           </div>

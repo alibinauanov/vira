@@ -76,7 +76,7 @@ export default function DemoMailingsPage() {
         <div className="px-4 py-4 border-b border-slate-200">
           <div className="flex items-center justify-between">
             <p className="text-lg font-semibold text-slate-900">Чаты</p>
-            <Badge variant="outline" className="border-slate-300 text-slate-700">
+            <Badge tone="neutral" className="border-slate-300 text-slate-700">
               Рассылки
             </Badge>
           </div>
@@ -183,7 +183,7 @@ export default function DemoMailingsPage() {
           <div className="mx-auto flex max-w-3xl flex-col gap-3">
             <Input placeholder="Написать сообщение клиенту..." className="w-full" />
             <div className="flex items-center justify-between gap-3">
-              <Badge variant="outline" className="border-slate-300 text-slate-700">
+              <Badge tone="neutral" className="border-slate-300 text-slate-700">
                 Шаблон рассылки
               </Badge>
               <Button size="icon" className="rounded-full" aria-label="Отправить">
