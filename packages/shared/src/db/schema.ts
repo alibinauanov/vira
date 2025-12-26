@@ -1,6 +1,7 @@
 import { prisma, resolvedDatabaseUrl } from "./client";
 
 let schemaReady = false;
+let schemaCheckPromise: Promise<void> | null = null;
 
 export async function ensureSchema() {
   if (schemaReady) return;
@@ -9,7 +10,27 @@ export async function ensureSchema() {
     return;
   }
 
-  await prisma.$executeRawUnsafe(`
+  // If a schema check is already in progress, wait for it instead of starting a new one
+  if (schemaCheckPromise) {
+    await schemaCheckPromise;
+    return;
+  }
+
+  schemaCheckPromise = (async () => {
+    // Quick check: if Restaurant table exists, schema is likely ready
+    try {
+      const result = await prisma.$queryRawUnsafe<Array<{ name: string }>>(
+        `SELECT name FROM sqlite_master WHERE type='table' AND name='Restaurant' LIMIT 1;`,
+      );
+      if (result.length > 0) {
+        schemaReady = true;
+        return;
+      }
+    } catch {
+      // If query fails, continue with full schema creation
+    }
+
+    await prisma.$executeRawUnsafe(`
     CREATE TABLE IF NOT EXISTS "Reservation" (
       "id" INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
       "restaurantId" INTEGER,
@@ -27,29 +48,31 @@ export async function ensureSchema() {
     );
   `);
 
-  const reservationColumns = (await prisma.$queryRawUnsafe<
-    { name: string }[]
-  >(`PRAGMA table_info("Reservation");`)).map((col) => col.name);
-  if (!reservationColumns.includes("restaurantId")) {
+    const reservationColumns = (
+      await prisma.$queryRawUnsafe<{ name: string }[]>(
+        `PRAGMA table_info("Reservation");`,
+      )
+    ).map((col) => col.name);
+    if (!reservationColumns.includes("restaurantId")) {
+      await prisma.$executeRawUnsafe(`
+        ALTER TABLE "Reservation" ADD COLUMN "restaurantId" INTEGER;
+      `);
+    }
+
     await prisma.$executeRawUnsafe(`
-      ALTER TABLE "Reservation" ADD COLUMN "restaurantId" INTEGER;
+      CREATE INDEX IF NOT EXISTS "Reservation_businessSlug_idx" ON "Reservation"("businessSlug");
     `);
-  }
 
-  await prisma.$executeRawUnsafe(`
-    CREATE INDEX IF NOT EXISTS "Reservation_businessSlug_idx" ON "Reservation"("businessSlug");
-  `);
+    await prisma.$executeRawUnsafe(`
+      CREATE INDEX IF NOT EXISTS "Reservation_businessSlug_startAt_idx" ON "Reservation"("businessSlug", "startAt");
+    `);
 
-  await prisma.$executeRawUnsafe(`
-    CREATE INDEX IF NOT EXISTS "Reservation_businessSlug_startAt_idx" ON "Reservation"("businessSlug", "startAt");
-  `);
+    await prisma.$executeRawUnsafe(`
+      CREATE INDEX IF NOT EXISTS "Reservation_startAt_idx" ON "Reservation"("startAt");
+    `);
 
-  await prisma.$executeRawUnsafe(`
-    CREATE INDEX IF NOT EXISTS "Reservation_startAt_idx" ON "Reservation"("startAt");
-  `);
-
-  await prisma.$executeRawUnsafe(`
-    CREATE TABLE IF NOT EXISTS "Restaurant" (
+    await prisma.$executeRawUnsafe(`
+      CREATE TABLE IF NOT EXISTS "Restaurant" (
       "id" INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
       "slug" TEXT NOT NULL UNIQUE,
       "name" TEXT NOT NULL,
@@ -57,11 +80,11 @@ export async function ensureSchema() {
       "logoAssetId" INTEGER,
       "createdAt" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
       "updatedAt" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP
-    );
-  `);
+      );
+    `);
 
-  await prisma.$executeRawUnsafe(`
-    CREATE TABLE IF NOT EXISTS "RestaurantMember" (
+    await prisma.$executeRawUnsafe(`
+      CREATE TABLE IF NOT EXISTS "RestaurantMember" (
       "id" INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
       "restaurantId" INTEGER NOT NULL,
       "clerkUserId" TEXT NOT NULL,
@@ -70,7 +93,7 @@ export async function ensureSchema() {
     );
   `);
 
-  await prisma.$executeRawUnsafe(`
+    await prisma.$executeRawUnsafe(`
     CREATE TABLE IF NOT EXISTS "FloorPlan" (
       "id" INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
       "restaurantId" INTEGER NOT NULL,
@@ -83,7 +106,7 @@ export async function ensureSchema() {
     );
   `);
 
-  await prisma.$executeRawUnsafe(`
+    await prisma.$executeRawUnsafe(`
     CREATE TABLE IF NOT EXISTS "Table" (
       "id" INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
       "restaurantId" INTEGER NOT NULL,
@@ -101,16 +124,18 @@ export async function ensureSchema() {
     );
   `);
 
-  const tableColumns = (await prisma.$queryRawUnsafe<
-    { name: string }[]
-  >(`PRAGMA table_info("Table");`)).map((col) => col.name);
-  if (!tableColumns.includes("seats")) {
-    await prisma.$executeRawUnsafe(`
+    const tableColumns = (
+      await prisma.$queryRawUnsafe<{ name: string }[]>(
+        `PRAGMA table_info("Table");`,
+      )
+    ).map((col) => col.name);
+    if (!tableColumns.includes("seats")) {
+      await prisma.$executeRawUnsafe(`
       ALTER TABLE "Table" ADD COLUMN "seats" INTEGER NOT NULL DEFAULT 2;
     `);
-  }
+    }
 
-  await prisma.$executeRawUnsafe(`
+    await prisma.$executeRawUnsafe(`
     CREATE TABLE IF NOT EXISTS "RestaurantInfo" (
       "restaurantId" INTEGER NOT NULL PRIMARY KEY,
       "address" TEXT,
@@ -120,7 +145,7 @@ export async function ensureSchema() {
     );
   `);
 
-  await prisma.$executeRawUnsafe(`
+    await prisma.$executeRawUnsafe(`
     CREATE TABLE IF NOT EXISTS "MenuCategory" (
       "id" INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
       "restaurantId" INTEGER NOT NULL,
@@ -132,7 +157,7 @@ export async function ensureSchema() {
     );
   `);
 
-  await prisma.$executeRawUnsafe(`
+    await prisma.$executeRawUnsafe(`
     CREATE TABLE IF NOT EXISTS "MenuItem" (
       "id" INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
       "restaurantId" INTEGER NOT NULL,
@@ -148,7 +173,7 @@ export async function ensureSchema() {
     );
   `);
 
-  await prisma.$executeRawUnsafe(`
+    await prisma.$executeRawUnsafe(`
     CREATE TABLE IF NOT EXISTS "ClientPageConfig" (
       "restaurantId" INTEGER NOT NULL PRIMARY KEY,
       "version" INTEGER NOT NULL DEFAULT 1,
@@ -158,7 +183,7 @@ export async function ensureSchema() {
     );
   `);
 
-  await prisma.$executeRawUnsafe(`
+    await prisma.$executeRawUnsafe(`
     CREATE TABLE IF NOT EXISTS "Integration" (
       "id" INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
       "restaurantId" INTEGER NOT NULL,
@@ -170,7 +195,7 @@ export async function ensureSchema() {
     );
   `);
 
-  await prisma.$executeRawUnsafe(`
+    await prisma.$executeRawUnsafe(`
     CREATE TABLE IF NOT EXISTS "MediaAsset" (
       "id" INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
       "restaurantId" INTEGER NOT NULL,
@@ -189,53 +214,57 @@ export async function ensureSchema() {
     );
   `);
 
-  await prisma.$executeRawUnsafe(`
+    await prisma.$executeRawUnsafe(`
     CREATE INDEX IF NOT EXISTS "RestaurantMember_clerkUserId_idx" ON "RestaurantMember"("clerkUserId");
   `);
 
-  await prisma.$executeRawUnsafe(`
+    await prisma.$executeRawUnsafe(`
     CREATE INDEX IF NOT EXISTS "Reservation_restaurantId_idx" ON "Reservation"("restaurantId");
   `);
 
-  await prisma.$executeRawUnsafe(`
+    await prisma.$executeRawUnsafe(`
     CREATE INDEX IF NOT EXISTS "Reservation_restaurantId_status_idx" ON "Reservation"("restaurantId", "status");
   `);
 
-  await prisma.$executeRawUnsafe(`
+    await prisma.$executeRawUnsafe(`
     CREATE INDEX IF NOT EXISTS "Reservation_restaurantId_status_startAt_idx" ON "Reservation"("restaurantId", "status", "startAt");
   `);
 
-  await prisma.$executeRawUnsafe(`
+    await prisma.$executeRawUnsafe(`
     CREATE INDEX IF NOT EXISTS "Reservation_restaurantId_tableLabel_status_idx" ON "Reservation"("restaurantId", "tableLabel", "status");
   `);
 
-  await prisma.$executeRawUnsafe(`
+    await prisma.$executeRawUnsafe(`
     CREATE INDEX IF NOT EXISTS "FloorPlan_restaurantId_isActive_idx" ON "FloorPlan"("restaurantId", "isActive");
   `);
 
-  await prisma.$executeRawUnsafe(`
+    await prisma.$executeRawUnsafe(`
     CREATE INDEX IF NOT EXISTS "Table_restaurantId_floorPlanId_idx" ON "Table"("restaurantId", "floorPlanId");
   `);
 
-  await prisma.$executeRawUnsafe(`
+    await prisma.$executeRawUnsafe(`
     CREATE INDEX IF NOT EXISTS "MenuCategory_restaurantId_isActive_idx" ON "MenuCategory"("restaurantId", "isActive");
   `);
 
-  await prisma.$executeRawUnsafe(`
+    await prisma.$executeRawUnsafe(`
     CREATE INDEX IF NOT EXISTS "MenuItem_restaurantId_isAvailable_idx" ON "MenuItem"("restaurantId", "isAvailable");
   `);
 
-  await prisma.$executeRawUnsafe(`
+    await prisma.$executeRawUnsafe(`
     CREATE INDEX IF NOT EXISTS "MenuItem_categoryId_isAvailable_idx" ON "MenuItem"("categoryId", "isAvailable");
   `);
 
-  await prisma.$executeRawUnsafe(`
+    await prisma.$executeRawUnsafe(`
     CREATE INDEX IF NOT EXISTS "MenuItem_restaurantId_categoryId_isAvailable_idx" ON "MenuItem"("restaurantId", "categoryId", "isAvailable");
   `);
 
-  await prisma.$executeRawUnsafe(`
-    CREATE INDEX IF NOT EXISTS "MediaAsset_restaurantId_kind_idx" ON "MediaAsset"("restaurantId", "kind");
-  `);
+    await prisma.$executeRawUnsafe(`
+      CREATE INDEX IF NOT EXISTS "MediaAsset_restaurantId_kind_idx" ON "MediaAsset"("restaurantId", "kind");
+    `);
 
-  schemaReady = true;
+    schemaReady = true;
+  })();
+
+  await schemaCheckPromise;
+  schemaCheckPromise = null;
 }

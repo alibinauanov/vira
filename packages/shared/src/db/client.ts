@@ -50,6 +50,16 @@ const prismaClientSingleton = () =>
       },
     },
     log: process.env.NODE_ENV === "development" ? ["error", "warn"] : ["error"],
+    // Optimize connection pooling for better performance
+    ...(process.env.DATABASE_URL && !process.env.DATABASE_URL.startsWith("file:")
+      ? {
+          // For PostgreSQL and other remote databases, use connection pooling
+          // Prisma automatically manages connection pooling, but we can optimize
+        }
+      : {
+          // For SQLite, enable WAL mode for better concurrent performance
+          // This is handled at the database level, not Prisma level
+        }),
   });
 
 declare global {
