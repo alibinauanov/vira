@@ -1,4 +1,4 @@
-import { ensureActiveFloorPlan } from "@vira/shared/db/floor-plans";
+import { listFloorPlans, ensureActiveFloorPlan } from "@vira/shared/db/floor-plans";
 import { requireRestaurantContext } from "@/lib/tenant";
 import { SeatingMapClient } from "./SeatingMapClient";
 
@@ -15,17 +15,31 @@ export default async function TablesPage({
     slug,
     `/${slug}/admin/tables`,
   );
-  const plan = await ensureActiveFloorPlan(restaurant.id);
+  
+  const [allFloors, activePlan] = await Promise.all([
+    listFloorPlans(restaurant.id),
+    ensureActiveFloorPlan(restaurant.id),
+  ]);
+
+  const floors = allFloors.map((floor) => ({
+    id: floor.id,
+    name: floor.name,
+    isActive: floor.isActive,
+    canvasWidth: floor.canvasWidth ?? 800,
+    canvasHeight: floor.canvasHeight ?? 480,
+    tableCount: floor.tables.length,
+  }));
 
   return (
     <SeatingMapClient
       slug={restaurant.slug}
+      initialFloors={floors}
       initialPlan={{
-        id: plan.id,
-        name: plan.name,
-        canvasWidth: plan.canvasWidth ?? 800,
-        canvasHeight: plan.canvasHeight ?? 480,
-        tables: plan.tables.map((table: Table) => ({
+        id: activePlan.id,
+        name: activePlan.name,
+        canvasWidth: activePlan.canvasWidth ?? 800,
+        canvasHeight: activePlan.canvasHeight ?? 480,
+        tables: activePlan.tables.map((table: Table) => ({
           id: table.id,
           number: table.number,
           label: table.label,

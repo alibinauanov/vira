@@ -112,11 +112,20 @@ export async function PUT(
     }
   }
 
+  const payloadWithFloorId = body as {
+    name?: string;
+    canvasWidth?: number;
+    canvasHeight?: number;
+    floorPlanId?: number;
+    tables?: TableInput[];
+  };
+
   try {
     const plan = await saveFloorPlan(restaurant.id, {
       name: payload.name,
       canvasWidth: payload.canvasWidth,
       canvasHeight: payload.canvasHeight,
+      floorPlanId: payloadWithFloorId.floorPlanId,
       tables: payload.tables.map((table: TableInput) => ({
         id: table.id,
         number: table.number ?? "",
