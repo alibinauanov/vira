@@ -220,38 +220,59 @@ export async function saveFloorPlan(
         });
   }
 
-  const existingTables = await prisma.table.findMany({
-    where: { floorPlanId: activePlan.id, restaurantId },
-  });
-  type ExistingTable = (typeof existingTables)[number];
-  const incomingIds = normalizedTables
-    .map((table: NormalizedTable) => table.id)
-    .filter((id): id is number => typeof id === "number");
-  const toDelete = existingTables
-    .filter((table: ExistingTable) => !incomingIds.includes(table.id))
-    .map((table: ExistingTable) => table.id);
-  if (toDelete.length > 0) {
-    await prisma.table.deleteMany({ where: { id: { in: toDelete } } });
-  }
+  // Use transaction for atomicity and better performance
+  return prisma.$transaction(async (tx) => {
+    const existingTables = await tx.table.findMany({
+      where: { floorPlanId: activePlan.id, restaurantId },
+      select: { id: true },
+    });
+    type ExistingTable = (typeof existingTables)[number];
+    const incomingIds = normalizedTables
+      .map((table: NormalizedTable) => table.id)
+      .filter((id): id is number => typeof id === "number");
+    const toDelete = existingTables
+      .filter((table: ExistingTable) => !incomingIds.includes(table.id))
+      .map((table: ExistingTable) => table.id);
+    
+    // Batch delete
+    if (toDelete.length > 0) {
+      await tx.table.deleteMany({ where: { id: { in: toDelete } } });
+    }
 
-  for (const table of normalizedTables) {
-    if (table.id) {
-      await prisma.table.update({
-        where: { id: table.id },
-        data: {
-          number: table.number,
-          label: table.label?.trim() || null,
-          seats: table.seats,
-          x: table.x,
-          y: table.y,
-          width: table.width,
-          height: table.height,
-          rotation: table.rotation ?? null,
-        },
-      });
-    } else {
-      await prisma.table.create({
-        data: {
+    // Separate updates and creates for bulk operations
+    const toUpdate = normalizedTables.filter(
+      (table: NormalizedTable): table is NormalizedTable & { id: number } =>
+        typeof table.id === "number",
+    );
+    const toCreate = normalizedTables.filter(
+      (table: NormalizedTable) => typeof table.id !== "number",
+    );
+
+    // Batch update using Promise.all for parallel execution
+    if (toUpdate.length > 0) {
+      await Promise.all(
+        toUpdate.map((table) =>
+          tx.table.update({
+            where: { id: table.id },
+            data: {
+              number: table.number,
+              label: table.label?.trim() || null,
+              seats: table.seats,
+              x: table.x,
+              y: table.y,
+              width: table.width,
+              height: table.height,
+              rotation: table.rotation ?? null,
+            },
+          }),
+        ),
+      );
+    }
+
+    // Batch create using createMany (much faster than individual creates)
+    if (toCreate.length > 0) {
+      await tx.table.createMany({
+        data: toCreate.map((table) => ({
           restaurantId,
           floorPlanId: activePlan.id,
           number: table.number,
@@ -262,17 +283,18 @@ export async function saveFloorPlan(
           width: table.width,
           height: table.height,
           rotation: table.rotation ?? null,
-        },
+        })),
       });
     }
-  }
 
-  return prisma.floorPlan.findUnique({
-    where: { id: activePlan.id },
-    include: { 
-      tables: {
-        orderBy: [{ number: "asc" }],
+    // Return the updated plan with tables
+    return tx.floorPlan.findUnique({
+      where: { id: activePlan.id },
+      include: {
+        tables: {
+          orderBy: [{ number: "asc" }],
+        },
       },
-    },
+    });
   });
 }

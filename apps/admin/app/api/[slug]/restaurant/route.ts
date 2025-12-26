@@ -27,9 +27,22 @@ export async function GET(
   );
   if (error) return error;
 
+  // Use select for better performance
   const record = await prisma.restaurant.findUnique({
     where: { id: restaurant.id },
-    include: { logoAsset: true },
+    select: {
+      id: true,
+      name: true,
+      phone: true,
+      logoAssetId: true,
+      logoAsset: {
+        select: {
+          id: true,
+          objectKey: true,
+          publicUrl: true,
+        },
+      },
+    },
   });
 
   return NextResponse.json({
@@ -105,6 +118,7 @@ export async function PUT(
     }
   }
 
+  // Use select to only return needed fields
   const updated = await prisma.restaurant.update({
     where: { id: restaurant.id },
     data: {
@@ -112,6 +126,13 @@ export async function PUT(
       slug: nextSlug,
       logoAssetId: payload.logoAssetId ?? null,
       phone: payload.phone?.trim() || null,
+    },
+    select: {
+      id: true,
+      name: true,
+      slug: true,
+      phone: true,
+      logoAssetId: true,
     },
   });
 

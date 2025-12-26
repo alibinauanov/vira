@@ -13,9 +13,22 @@ export default async function ProfilePage({
     slug,
     `/${slug}/admin/profile`,
   );
+  // Use select instead of include for better performance
   const record = await prisma.restaurant.findUnique({
     where: { id: restaurant.id },
-    include: { logoAsset: true },
+    select: {
+      id: true,
+      name: true,
+      phone: true,
+      logoAssetId: true,
+      logoAsset: {
+        select: {
+          id: true,
+          objectKey: true,
+          publicUrl: true,
+        },
+      },
+    },
   });
 
   return (

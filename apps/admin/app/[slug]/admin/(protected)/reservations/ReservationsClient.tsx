@@ -228,6 +228,7 @@ export function ReservationsClient({
           <Button
             variant="secondary"
             onClick={() => void refreshReservations()}
+            loading={loading}
           >
             <RefreshCcw className="size-4" />
             Обновить
@@ -274,6 +275,7 @@ export function ReservationsClient({
                 <Button
                   variant="secondary"
                   onClick={() => void refreshReservations()}
+                  loading={loading}
                 >
                   <RefreshCcw className="size-4" />
                   Обновить
@@ -296,8 +298,13 @@ export function ReservationsClient({
 
           {loading ? (
             <Card>
-              <CardContent className="p-4 text-sm text-muted-foreground">
-                Загружаем бронирования...
+              <CardContent className="p-4">
+                <div className="flex items-center gap-3">
+                  <span className="size-5 animate-spin rounded-full border-2 border-primary border-t-transparent" />
+                  <p className="text-sm text-muted-foreground">
+                    Загружаем бронирования...
+                  </p>
+                </div>
               </CardContent>
             </Card>
           ) : null}

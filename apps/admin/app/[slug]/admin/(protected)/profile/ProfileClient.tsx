@@ -189,11 +189,12 @@ export function ProfileClient({
                 )}
               </div>
               <div className="flex flex-col gap-2">
-                <label className="inline-flex cursor-pointer items-center gap-2 text-sm font-semibold text-primary">
+                <label className="inline-flex cursor-pointer items-center gap-2 text-sm font-semibold text-primary disabled:cursor-not-allowed disabled:opacity-50">
                   <input
                     type="file"
                     accept="image/png,image/jpeg,image/webp"
                     className="hidden"
+                    disabled={uploading}
                     onChange={(event) => {
                       const file = event.target.files?.[0];
                       if (file) {
@@ -201,7 +202,11 @@ export function ProfileClient({
                       }
                     }}
                   />
-                  <ImageUp className="size-4" />
+                  {uploading ? (
+                    <span className="size-4 animate-spin rounded-full border-2 border-primary/60 border-t-transparent" />
+                  ) : (
+                    <ImageUp className="size-4" />
+                  )}
                   {uploading ? "Загрузка..." : "Загрузить логотип"}
                 </label>
                 <p className="text-xs text-muted-foreground">

@@ -42,6 +42,8 @@ export function CustomizerClient({
     initialLogoUrl ?? null,
   );
   const [saving, setSaving] = useState(false);
+  const [uploadingBackground, setUploadingBackground] = useState(false);
+  const [uploadingLogo, setUploadingLogo] = useState(false);
   const [message, setMessage] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
 
@@ -189,6 +191,8 @@ export function CustomizerClient({
                       onChange={async (event) => {
                         const file = event.target.files?.[0];
                         if (!file) return;
+                        setUploadingBackground(true);
+                        setError(null);
                         try {
                           const asset = await uploadAsset(
                             file,
@@ -199,17 +203,24 @@ export function CustomizerClient({
                             backgroundAssetId: asset.id,
                           }));
                           setBackgroundUrl(asset.publicUrl);
+                          setMessage("Фоновое изображение загружено.");
                         } catch (err) {
                           setError(
                             err instanceof Error
                               ? err.message
                               : "Не удалось загрузить файл.",
                           );
+                        } finally {
+                          setUploadingBackground(false);
                         }
                       }}
                     />
-                    <ImageUp className="size-4" />
-                    Загрузить
+                    {uploadingBackground ? (
+                      <span className="size-4 animate-spin rounded-full border-2 border-primary/60 border-t-transparent" />
+                    ) : (
+                      <ImageUp className="size-4" />
+                    )}
+                    {uploadingBackground ? "Загрузка..." : "Загрузить"}
                   </label>
                 </div>
               </div>
@@ -230,14 +241,17 @@ export function CustomizerClient({
                       "Нет логотипа"
                     )}
                   </div>
-                  <label className="inline-flex cursor-pointer items-center gap-2 text-sm font-semibold text-primary">
+                  <label className="inline-flex cursor-pointer items-center gap-2 text-sm font-semibold text-primary disabled:cursor-not-allowed disabled:opacity-50">
                     <input
                       type="file"
                       accept="image/png,image/jpeg,image/webp"
                       className="hidden"
+                      disabled={uploadingLogo}
                       onChange={async (event) => {
                         const file = event.target.files?.[0];
                         if (!file) return;
+                        setUploadingLogo(true);
+                        setError(null);
                         try {
                           const asset = await uploadAsset(file, "LOGO");
                           setTheme((prev) => ({
@@ -245,17 +259,24 @@ export function CustomizerClient({
                             logoOverrideAssetId: asset.id,
                           }));
                           setLogoUrl(asset.publicUrl);
+                          setMessage("Логотип загружен.");
                         } catch (err) {
                           setError(
                             err instanceof Error
                               ? err.message
                               : "Не удалось загрузить файл.",
                           );
+                        } finally {
+                          setUploadingLogo(false);
                         }
                       }}
                     />
-                    <ImageUp className="size-4" />
-                    Загрузить
+                    {uploadingLogo ? (
+                      <span className="size-4 animate-spin rounded-full border-2 border-primary/60 border-t-transparent" />
+                    ) : (
+                      <ImageUp className="size-4" />
+                    )}
+                    {uploadingLogo ? "Загрузка..." : "Загрузить"}
                   </label>
                 </div>
               </div>
@@ -440,6 +461,18 @@ export function CustomizerClient({
           </CardContent>
         </Card>
       ) : null}
+      
+      {/* Loading overlay when saving */}
+      {saving && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/20 backdrop-blur-sm">
+          <Card className="bg-white p-6 shadow-lg">
+            <div className="flex items-center gap-3">
+              <span className="size-6 animate-spin rounded-full border-2 border-primary border-t-transparent" />
+              <p className="text-sm font-medium">Сохранение настроек...</p>
+            </div>
+          </Card>
+        </div>
+      )}
     </div>
   );
 }

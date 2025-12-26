@@ -130,9 +130,22 @@ export async function ensureRestaurantForUser(options: {
   preferredSlug?: string | null;
 }) {
   await ensureSchema();
+  // Use select for better performance - only fetch needed fields
   const existing = await prisma.restaurantMember.findFirst({
     where: { clerkUserId: options.clerkUserId },
-    include: { restaurant: true },
+    select: {
+      restaurant: {
+        select: {
+          id: true,
+          slug: true,
+          name: true,
+          phone: true,
+          logoAssetId: true,
+          createdAt: true,
+          updatedAt: true,
+        },
+      },
+    },
   });
   if (existing?.restaurant) {
     return existing.restaurant;
@@ -145,20 +158,31 @@ export async function ensureRestaurantForUser(options: {
     slug = await buildUniqueSlug(options.name || "restaurant");
   }
 
-  const restaurant = await prisma.restaurant.create({
-    data: {
-      slug,
-      name: options.name?.trim() || buildRestaurantName(slug),
-      phone: options.phone?.trim() || null,
-    },
+  // Use transaction for atomicity and better performance
+  return prisma.$transaction(async (tx) => {
+    const restaurant = await tx.restaurant.create({
+      data: {
+        slug,
+        name: options.name?.trim() || buildRestaurantName(slug),
+        phone: options.phone?.trim() || null,
+      },
+      select: {
+        id: true,
+        slug: true,
+        name: true,
+        phone: true,
+        logoAssetId: true,
+        createdAt: true,
+        updatedAt: true,
+      },
+    });
+    await tx.restaurantMember.create({
+      data: {
+        restaurantId: restaurant.id,
+        clerkUserId: options.clerkUserId,
+        role: "OWNER",
+      },
+    });
+    return restaurant;
   });
-  await prisma.restaurantMember.create({
-    data: {
-      restaurantId: restaurant.id,
-      clerkUserId: options.clerkUserId,
-      role: "OWNER",
-    },
-  });
-
-  return restaurant;
 }

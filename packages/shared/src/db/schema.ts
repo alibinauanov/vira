@@ -4,6 +4,8 @@ let schemaReady = false;
 let schemaCheckPromise: Promise<void> | null = null;
 
 export async function ensureSchema() {
+  // Skip schema checks for PostgreSQL - migrations handle schema
+  // This function is only needed for SQLite local development
   if (schemaReady) return;
   if (!resolvedDatabaseUrl.startsWith("file:")) {
     schemaReady = true;

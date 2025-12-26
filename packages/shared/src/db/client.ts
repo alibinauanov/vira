@@ -42,25 +42,27 @@ const defaultDatabaseUrl = `file:${path.resolve(
   "../../packages/shared/prisma/dev.db",
 )}`;
 
-const prismaClientSingleton = () =>
-  new PrismaClient({
+const prismaClientSingleton = () => {
+  const databaseUrl = process.env.DATABASE_URL ?? defaultDatabaseUrl;
+  const isPostgreSQL = !databaseUrl.startsWith("file:");
+
+  return new PrismaClient({
     datasources: {
       db: {
-        url: process.env.DATABASE_URL ?? defaultDatabaseUrl,
+        url: databaseUrl,
       },
     },
     log: process.env.NODE_ENV === "development" ? ["error", "warn"] : ["error"],
-    // Optimize connection pooling for better performance
-    ...(process.env.DATABASE_URL && !process.env.DATABASE_URL.startsWith("file:")
+    // Optimize for PostgreSQL connection pooling
+    ...(isPostgreSQL
       ? {
-          // For PostgreSQL and other remote databases, use connection pooling
-          // Prisma automatically manages connection pooling, but we can optimize
+          // Prisma uses connection pooling automatically, but we can hint at optimal settings
+          // The connection pool size is managed by the DATABASE_URL connection string parameters
+          // For Supabase/PostgreSQL: add ?connection_limit=10&pool_timeout=20 to DATABASE_URL
         }
-      : {
-          // For SQLite, enable WAL mode for better concurrent performance
-          // This is handled at the database level, not Prisma level
-        }),
+      : {}),
   });
+};
 
 declare global {
   // eslint-disable-next-line no-var
