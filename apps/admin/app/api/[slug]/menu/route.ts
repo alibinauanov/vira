@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 
 import { jsonError, resolveSlug } from "@vira/shared/api/utils";
-import { listMenuCategories } from "@vira/shared/db/menu";
+import { listMenuCategories, listAllMenuCategoriesForAdmin } from "@vira/shared/db/menu";
 import { requireAdminRestaurant } from "@/app/api/utils";
 
 export async function GET(
@@ -21,6 +21,7 @@ export async function GET(
   const { error, restaurant } = await requireAdminRestaurant(slug, request);
   if (error) return error;
 
-  const categories = await listMenuCategories(restaurant.id);
+  // For admin, return all categories including inactive ones
+  const categories = await listAllMenuCategoriesForAdmin(restaurant.id);
   return NextResponse.json({ categories });
 }

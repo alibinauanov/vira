@@ -1,9 +1,9 @@
-import { listMenuCategories } from "@vira/shared/db/menu";
+import { listAllMenuCategoriesForAdmin } from "@vira/shared/db/menu";
 import { getRestaurantInfo } from "@vira/shared/db/restaurant-info";
 import { requireRestaurantContext } from "@/lib/tenant";
 import { KnowledgeClient } from "./KnowledgeClient";
 
-type MenuCategory = Awaited<ReturnType<typeof listMenuCategories>>[number];
+type MenuCategory = Awaited<ReturnType<typeof listAllMenuCategoriesForAdmin>>[number];
 type MenuItem = MenuCategory["items"][number];
 
 export default async function KnowledgePage({
@@ -19,7 +19,7 @@ export default async function KnowledgePage({
 
   const [info, categories] = await Promise.all([
     getRestaurantInfo(restaurant.id),
-    listMenuCategories(restaurant.id),
+    listAllMenuCategoriesForAdmin(restaurant.id),
   ]);
   const safeInfo = info
     ? {

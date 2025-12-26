@@ -56,6 +56,31 @@ export async function listMenuCategories(restaurantId: number) {
     }));
 }
 
+export async function listAllMenuCategoriesForAdmin(restaurantId: number) {
+  await ensureSchema();
+  const categories = await prisma.menuCategory.findMany({
+    where: { 
+      restaurantId,
+    },
+    orderBy: [{ sortOrder: "asc" }, { id: "asc" }],
+    include: {
+      items: {
+        orderBy: [{ sortOrder: "asc" }, { id: "asc" }],
+        include: {
+          imageAsset: {
+            select: { id: true, objectKey: true, publicUrl: true },
+          },
+        },
+      },
+    },
+  });
+
+  return categories.map((category) => ({
+    ...category,
+    items: category.items.map(serializeMenuItem),
+  }));
+}
+
 export async function createMenuCategory(
   restaurantId: number,
   payload: { name: string; sortOrder?: number; isActive?: boolean },
